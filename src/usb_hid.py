@@ -44,6 +44,7 @@ class Device:
         report_ids: Sequence[int],
         in_report_lengths: Sequence[int],
         out_report_lengths: Sequence[int],
+        name: str = "Gadget",
     ) -> None:
         self.out_report_lengths = out_report_lengths
         self.in_report_lengths = in_report_lengths
@@ -52,6 +53,14 @@ class Device:
         self.usage_page = usage_page
         self.descriptor = descriptor
         self._last_received_report = None
+        self._name = name
+        self._path = None
+
+    def __repr__(self):
+        return f"{self._name} ({self})"
+
+    def __str__(self):
+        return self._path
 
     def send_report(self, report: bytearray, report_id: int = None):
         """Send an HID report. If the device descriptor specifies zero or one report id's,
@@ -89,7 +98,7 @@ class Device:
                 self._last_received_report = report
         return self._last_received_report
 
-    def get_device_path(self, report_id):
+    def get_device_path(self, report_id=None):
         """
         translates the /dev/hidg device from the report id
         """
@@ -106,7 +115,9 @@ class Device:
         return device_path
 
     KEYBOARD = None
+    BOOT_KEYBOARD = None
     MOUSE = None
+    BOOT_MOUSE = None
     CONSUMER_CONTROL = None
 
 
@@ -189,6 +200,7 @@ Device.KEYBOARD = Device(
     report_ids=[0x1],
     in_report_lengths=[8],
     out_report_lengths=[1],
+    name="Keyboard gadget",
 )
 Device.MOUSE = Device(
     descriptor=bytes(
@@ -264,6 +276,7 @@ Device.MOUSE = Device(
     report_ids=[0x02],
     in_report_lengths=[4],
     out_report_lengths=[0],
+    name="Mouse gadget",
 )
 
 Device.CONSUMER_CONTROL = Device(
@@ -301,6 +314,7 @@ Device.CONSUMER_CONTROL = Device(
     report_ids=[3],
     in_report_lengths=[2],
     out_report_lengths=[0],
+    name="Consumer control gadget",
 )
 
 Device.BOOT_KEYBOARD = Device(
@@ -380,6 +394,7 @@ Device.BOOT_KEYBOARD = Device(
     report_ids=[0x0],
     in_report_lengths=[8],
     out_report_lengths=[1],
+    name="Boot keyboard gadget",
 )
 Device.BOOT_MOUSE = Device(
     descriptor=bytes(
@@ -453,6 +468,7 @@ Device.BOOT_MOUSE = Device(
     report_ids=[0],
     in_report_lengths=[4],
     out_report_lengths=[0],
+    name="Boot mouse gadget",
 )
 
 
@@ -468,6 +484,7 @@ def disable() -> None:
         Path("%s/UDC" % this.gadget_root).write_text("", encoding="utf-8")
     except FileNotFoundError:
         pass
+
     for symlink in Path(this.gadget_root).glob("configs/**/hid.usb*"):
         symlink.unlink()
 
@@ -484,6 +501,12 @@ def disable() -> None:
     for function_dir in Path(this.gadget_root).rglob("functions/*"):
         if function_dir.is_dir():
             function_dir.rmdir()
+    for strings_file in Path(this.gadget_root).rglob("strings/*/*"):
+        if strings_file.is_dir():
+            strings_file.rmdir()
+    for strings_file in Path(this.gadget_root).rglob("strings/*"):
+        if strings_file.is_dir():
+            strings_file.rmdir()
     try:
         Path(this.gadget_root).rmdir()
     except FileNotFoundError:
@@ -492,6 +515,14 @@ def disable() -> None:
 
 
 atexit.register(disable)
+
+
+def unregister_disable():
+    """
+    When the script is run with help or version flag, we need to unregister lib.usb_hid.disable() from atexit
+    because else an exception occurs if the script is already running, e.g. as service.
+    """
+    atexit.unregister(disable)
 
 
 def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
@@ -609,6 +640,16 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     Path("%s/idVendor" % this.gadget_root).write_text(
         "%s" % 0x1D6B, encoding="utf-8"
     )  # Linux Foundation
+    Path("%s/strings/0x409" % this.gadget_root).mkdir(parents=True, exist_ok=True)
+    Path("%s/strings/0x409/serialnumber" % this.gadget_root).write_text(
+        "213374badcafe", encoding="utf-8"
+    )
+    Path("%s/strings/0x409/manufacturer" % this.gadget_root).write_text(
+        "quaxalber", encoding="utf-8"
+    )
+    Path("%s/strings/0x409/product" % this.gadget_root).write_text(
+        "USB Combo Device", encoding="utf-8"
+    )
     # """
     # 2. Creating the configurations
     # ------------------------------
@@ -642,13 +683,13 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     #     """
 
     for device in requested_devices:
-        config_root = "%s/configs/device.1" % this.gadget_root
+        config_root = "%s/configs/c.1" % this.gadget_root
         Path("%s/" % config_root).mkdir(parents=True, exist_ok=True)
         Path("%s/strings/0x409" % config_root).mkdir(parents=True, exist_ok=True)
         Path("%s/strings/0x409/configuration" % config_root).write_text(
-            "my configuration", encoding="utf-8"
+            "Config 1: ECM network", encoding="utf-8"
         )
-        Path("%s/MaxPower" % config_root).write_text("150", encoding="utf-8")
+        Path("%s/MaxPower" % config_root).write_text("250", encoding="utf-8")
         Path("%s/bmAttributes" % config_root).write_text("%s" % 0x080, encoding="utf-8")
         this.devices.append(device)
         # """
@@ -708,6 +749,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
                 )
             except FileNotFoundError:
                 pass
+
     # """ 5. Enabling the gadget
     # ----------------------
     # Such a gadget must be finally enabled so that the USB host can enumerate it.
@@ -723,3 +765,6 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     # $ echo s3c-hsotg > UDC  """
     udc = next(Path("/sys/class/udc/").glob("*"))
     Path("%s/UDC" % this.gadget_root).write_text("%s" % udc.name, encoding="utf-8")
+
+    for device in requested_devices:
+        device._path = device.get_device_path()

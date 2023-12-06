@@ -39,9 +39,12 @@ elif board_id == ap_board.RASPBERRY_PI_PICO:
 elif (
     detector.board.RASPBERRY_PI_4B
     or detector.board.RASPBERRY_PI_CM4
+    or detector.board.RASPBERRY_PI_CM4S
     or detector.board.RASPBERRY_PI_400
 ):
     from adafruit_blinka.board.raspberrypi.raspi_4b import *
+elif detector.board.RASPBERRY_PI_5:
+    from adafruit_blinka.board.raspberrypi.raspi_5b import *
 
 elif detector.board.any_raspberry_pi_40_pin:
     from adafruit_blinka.board.raspberrypi.raspi_40pin import *
@@ -133,6 +136,9 @@ elif board_id == ap_board.ORANGE_PI_4_LTS:
 elif board_id == ap_board.ORANGE_PI_5:
     from adafruit_blinka.board.orangepi.orangepi5 import *
 
+elif board_id == ap_board.ORANGE_PI_5_PLUS:
+    from adafruit_blinka.board.orangepi.orangepi5plus import *
+
 elif board_id == ap_board.BANANA_PI_M2_ZERO:
     from adafruit_blinka.board.bananapi.bpim2zero import *
 
@@ -193,6 +199,9 @@ elif board_id == ap_board.ODROID_N2:
 elif board_id == ap_board.ODROID_M1:
     from adafruit_blinka.board.hardkernel.odroidm1 import *
 
+elif board_id == ap_board.ODROID_M1S:
+    from adafruit_blinka.board.hardkernel.odroidm1s import *
+
 elif board_id == ap_board.KHADAS_VIM3:
     from adafruit_blinka.board.khadas.khadasvim3 import *
 
@@ -225,6 +234,12 @@ elif board_id == ap_board.PINE64:
 
 elif board_id == ap_board.PINEH64:
     from adafruit_blinka.board.pineH64 import *
+
+elif board_id == ap_board.PCDUINO2:
+    from adafruit_blinka.board.linksprite.pcduino2 import *
+
+elif board_id == ap_board.PCDUINO3:
+    from adafruit_blinka.board.linksprite.pcduino3 import *
 
 elif board_id == ap_board.SOPINE:
     from adafruit_blinka.board.soPine import *
@@ -288,6 +303,9 @@ elif board_id == ap_board.LUBANCAT1:
 
 elif board_id == ap_board.LUBANCAT2:
     from adafruit_blinka.board.lubancat.lubancat2 import *
+
+elif board_id == ap_board.LUBANCAT4:
+    from adafruit_blinka.board.lubancat.lubancat4 import *
 
 elif board_id == ap_board.NANOPI_NEO_AIR:
     from adafruit_blinka.board.nanopi.neoair import *

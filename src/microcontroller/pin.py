@@ -17,12 +17,15 @@ elif chip_id == ap_chip.STM32F405:
 elif chip_id == ap_chip.RP2040:
     from adafruit_blinka.microcontroller.rp2040.pin import *
 elif chip_id == ap_chip.BCM2XXX:
-    if board_id in [
+    if board_id in (
         "RASPBERRY_PI_4B",
         "RASPBERRY_PI_400",
         "RASPBERRY_PI_CM4",
-    ]:
+        "RASPBERRY_PI_CM4S",
+    ):
         from adafruit_blinka.microcontroller.bcm2711.pin import *
+    elif board_id in ("RASPBERRY_PI_5",):
+        from adafruit_blinka.microcontroller.bcm2712.pin import *
     else:
         from adafruit_blinka.microcontroller.bcm283x.pin import *
 elif chip_id == ap_chip.DRA74X:
@@ -33,6 +36,10 @@ elif chip_id == ap_chip.AM65XX:
     from adafruit_blinka.microcontroller.am65xx.pin import *
 elif chip_id == ap_chip.JH71X0:
     from adafruit_blinka.microcontroller.starfive.JH71x0.pin import *
+elif chip_id == ap_chip.SUN4I:
+    from adafruit_blinka.microcontroller.allwinner.a20.pin import *
+elif chip_id == ap_chip.SUN7I:
+    from adafruit_blinka.microcontroller.allwinner.a20.pin import *
 elif chip_id == ap_chip.SUN8I:
     from adafruit_blinka.microcontroller.allwinner.h3.pin import *
 elif chip_id == ap_chip.H3:
@@ -85,12 +92,14 @@ elif chip_id == ap_chip.LPC4330:
     from adafruit_blinka.microcontroller.nxp_lpc4330.pin import *
 elif chip_id == ap_chip.MCP2221:
     from adafruit_blinka.microcontroller.mcp2221.pin import *
+elif chip_id == ap_chip.A10:
+    from adafruit_blinka.microcontroller.allwinner.a20.pin import *
+elif chip_id == ap_chip.A20:
+    from adafruit_blinka.microcontroller.allwinner.a20.pin import *
 elif chip_id == ap_chip.A64:
     from adafruit_blinka.microcontroller.allwinner.a64.pin import *
 elif chip_id == ap_chip.A33:
     from adafruit_blinka.microcontroller.allwinner.a33.pin import *
-elif chip_id == ap_chip.A20:
-    from adafruit_blinka.microcontroller.allwinner.a20.pin import *
 elif chip_id == ap_chip.RK3308:
     from adafruit_blinka.microcontroller.rockchip.rk3308.pin import *
 elif chip_id == ap_chip.RK3399:

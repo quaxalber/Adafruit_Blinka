@@ -55,7 +55,7 @@ setup(
     author="Adafruit Industries",
     author_email="circuitpython@adafruit.com",
     python_requires=">=3.7.0",
-    url="https://github.com/adafruit/Adafruit_Blinka",
+    url="https://github.com/quaxalber/Adafruit_Blinka",
     package_dir={"": "src"},
     packages=find_packages("src") + ["micropython-stubs"],
     # py_modules lists top-level single file packages to include.

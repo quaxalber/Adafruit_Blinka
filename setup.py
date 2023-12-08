@@ -42,7 +42,7 @@ if os.path.exists("/proc/device-tree/compatible"):
         board_reqs = ["Adafruit_BBIO"]
 
 setup(
-    name="Adafruit-Blinka",
+    name="quax-Blinka",
     use_scm_version={
         # This is needed for the PyPI version munging in the Github Actions release.yml
         "git_describe_command": "git describe --tags --long",

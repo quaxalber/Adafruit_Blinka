@@ -59,6 +59,9 @@ class Device:
     def __str__(self):
         return f"{self.name} ({self.path})"
 
+    def __repr__(self):
+        return f"{self.name} ({self.path})"
+
     def send_report(self, report: bytearray, report_id: int = None):
         """Send an HID report. If the device descriptor specifies zero or one report id's,
         you can supply `None` (the default) as the value of ``report_id``.

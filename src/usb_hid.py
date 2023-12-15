@@ -44,7 +44,7 @@ class Device:
         report_ids: Sequence[int],
         in_report_lengths: Sequence[int],
         out_report_lengths: Sequence[int],
-        name: str = "Gadget",
+        name: str,
     ) -> None:
         self.out_report_lengths = out_report_lengths
         self.in_report_lengths = in_report_lengths
@@ -197,7 +197,7 @@ Device.KEYBOARD = Device(
     report_ids=[0x1],
     in_report_lengths=[8],
     out_report_lengths=[1],
-    name="Keyboard gadget",
+    name="keyboard gadget",
 )
 Device.MOUSE = Device(
     descriptor=bytes(
@@ -273,7 +273,7 @@ Device.MOUSE = Device(
     report_ids=[0x02],
     in_report_lengths=[4],
     out_report_lengths=[0],
-    name="Mouse gadget",
+    name="mouse gadget",
 )
 
 Device.CONSUMER_CONTROL = Device(
@@ -311,7 +311,7 @@ Device.CONSUMER_CONTROL = Device(
     report_ids=[3],
     in_report_lengths=[2],
     out_report_lengths=[0],
-    name="Consumer control gadget",
+    name="consumer control gadget",
 )
 
 Device.BOOT_KEYBOARD = Device(
@@ -391,7 +391,7 @@ Device.BOOT_KEYBOARD = Device(
     report_ids=[0x0],
     in_report_lengths=[8],
     out_report_lengths=[1],
-    name="Boot keyboard gadget",
+    name="boot keyboard gadget",
 )
 Device.BOOT_MOUSE = Device(
     descriptor=bytes(
@@ -465,7 +465,7 @@ Device.BOOT_MOUSE = Device(
     report_ids=[0],
     in_report_lengths=[4],
     out_report_lengths=[0],
-    name="Boot mouse gadget",
+    name="boot mouse gadget",
 )
 
 

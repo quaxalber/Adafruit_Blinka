@@ -52,15 +52,12 @@ class Device:
         self.usage = usage
         self.usage_page = usage_page
         self.descriptor = descriptor
+        self.name = name
+        self.path = None
         self._last_received_report = None
-        self._name = name
-        self._path = None
-
-    def __repr__(self):
-        return f"{self._name} ({self})"
 
     def __str__(self):
-        return self._path
+        return f"{self.name} ({self.path})"
 
     def send_report(self, report: bytearray, report_id: int = None):
         """Send an HID report. If the device descriptor specifies zero or one report id's,
@@ -759,4 +756,4 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     Path("%s/UDC" % this.gadget_root).write_text("%s" % udc.name, encoding="utf-8")
 
     for device in requested_devices:
-        device._path = device.get_device_path()
+        device.path = device.get_device_path()

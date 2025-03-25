@@ -119,80 +119,49 @@ class Device:
     MOUSE = None
     BOOT_MOUSE = None
     CONSUMER_CONTROL = None
+    GAMEPAD = None
+    DIGITIZER = None
 
 
 Device.KEYBOARD = Device(
     descriptor=bytes(
         (
-            0x05,
-            0x01,  # usage page (generic desktop ctrls)
-            0x09,
-            0x06,  # usage (keyboard)
-            0xA1,
-            0x01,  # collection (application)
-            0x85,
-            0x01,  # Report ID (1)
-            0x05,
-            0x07,  # usage page (kbrd/keypad)
-            0x19,
-            0xE0,  # usage minimum (0xe0)
-            0x29,
-            0xE7,  # usage maximum (0xe7)
-            0x15,
-            0x00,  # logical minimum (0)
-            0x25,
-            0x01,  # logical maximum (1)
-            0x75,
-            0x01,  # report size (1)
-            0x95,
-            0x08,  # report count (8)
-            0x81,
-            0x02,  # input (data,var,abs,no wrap,linear,preferred state,no null position)
-            0x95,
-            0x01,  # report count (1)
-            0x75,
-            0x08,  # report size (8)
-            0x81,
-            0x01,  # input (const,array,abs,no wrap,linear,preferred state,no null position)
-            0x95,
-            0x03,  # report count (3)
-            0x75,
-            0x01,  # report size (1)
-            0x05,
-            0x08,  # usage page (leds)
-            0x19,
-            0x01,  # usage minimum (num lock)
-            0x29,
-            0x05,  # usage maximum (kana)
-            0x91,
-            0x02,  # output
-            # (data,var,abs,no wrap,linear,preferred state,no null position,non-volatile)
-            0x95,
-            0x01,  # report count (1)
-            0x75,
-            0x05,  # report size (5)
-            0x91,
-            0x01,  # output
-            # (const,array,abs,no wrap,linear,preferred state,no null position,non-volatile)
-            0x95,
-            0x06,  # report count (6)
-            0x75,
-            0x08,  # report size (8)
-            0x15,
-            0x00,  # logical minimum (0)
-            0x26,
-            0xFF,
-            0x00,  # logical maximum (255)
-            0x05,
-            0x07,  # usage page (kbrd/keypad)
-            0x19,
-            0x00,  # usage minimum (0x00)
-            0x2A,
-            0xFF,
-            0x00,  # usage maximum (0xff)
-            0x81,
-            0x00,  # input (data,array,abs,no wrap,linear,preferred state,no null position)
-            0xC0,  # end collection
+            # fmt: off
+            0x05, 0x01,  # usage page (generic desktop ctrls)
+            0x09, 0x06,  # usage (keyboard)
+            0xA1, 0x01,  # collection (application)
+            0x85, 0x01,  # Report ID (1)
+            0x05, 0x07,  # usage page (kbrd/keypad)
+            0x19, 0xE0,  # usage minimum (0xe0)
+            0x29, 0xE7,  # usage maximum (0xe7)
+            0x15, 0x00,  # logical minimum (0)
+            0x25, 0x01,  # logical maximum (1)
+            0x75, 0x01,  # report size (1)
+            0x95, 0x08,  # report count (8)
+            0x81, 0x02,  # input (data,var,abs,no wrap,linear,preferred state,no null position)
+            0x95, 0x01,  # report count (1)
+            0x75, 0x08,  # report size (8)
+            0x81, 0x01,  # input (const,array,abs,no wrap,linear,preferred state,no null position)
+            0x95, 0x03,  # report count (3)
+            0x75, 0x01,  # report size (1)
+            0x05, 0x08,  # usage page (leds)
+            0x19, 0x01,  # usage minimum (num lock)
+            0x29, 0x05,  # usage maximum (kana)
+            0x91, 0x02,  # output (data,var,abs,no wrap,linear,preferred state,no null position,non-volatile)
+            0x95, 0x01,  # report count (1)
+            0x75, 0x05,  # report size (5)
+            0x91, 0x01,  # output (const,array,abs,no wrap,linear,preferred state,no null position,non-volatile)
+            0x95, 0x06,  # report count (6)
+            0x75, 0x08,  # report size (8)
+            0x15, 0x00,  # logical minimum (0)
+            0x26, 0xFF, 0x00,  # logical maximum (255)
+            0x05, 0x07,  # usage page (kbrd/keypad)
+            0x19, 0x00,  # usage minimum (0x00)
+            0x2A, 0xFF, 0x00,  # usage maximum (0xff)
+            0x81, 0x00,  # input (data,array,abs,no wrap,linear,preferred state,no null position)
+            0xC0,
+            # end collection
+            # fmt: on
         )
     ),
     usage_page=0x1,
@@ -202,73 +171,46 @@ Device.KEYBOARD = Device(
     out_report_lengths=[1],
     name="keyboard gadget",
 )
+
 Device.MOUSE = Device(
     descriptor=bytes(
         (
-            0x05,
-            0x01,  # Usage Page (Generic Desktop Ctrls)
-            0x09,
-            0x02,  # Usage (Mouse)
-            0xA1,
-            0x01,  # Collection (Application)
-            0x85,
-            0x02,  # Report ID (2)
-            0x09,
-            0x01,  # Usage (Pointer)
-            0xA1,
-            0x00,  # Collection (Physical)
-            0x05,
-            0x09,  # Usage Page (Button)
-            0x19,
-            0x01,  # Usage Minimum (0x01)
-            0x29,
-            0x05,  # Usage Maximum (0x05)
-            0x15,
-            0x00,  # Logical Minimum (0)
-            0x25,
-            0x01,  # Logical Maximum (1)
-            0x95,
-            0x05,  # Report Count (5)
-            0x75,
-            0x01,  # Report Size (1)
-            0x81,
-            0x02,  # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-            0x95,
-            0x01,  # Report Count (1)
-            0x75,
-            0x03,  # Report Size (3)
-            0x81,
-            0x01,  # Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-            0x05,
-            0x01,  # Usage Page (Generic Desktop Ctrls)
-            0x09,
-            0x30,  # Usage (X)
-            0x09,
-            0x31,  # Usage (Y)
-            0x15,
-            0x81,  # Logical Minimum (-127)
-            0x25,
-            0x7F,  # Logical Maximum (127)
-            0x75,
-            0x08,  # Report Size (8)
-            0x95,
-            0x02,  # Report Count (2)
-            0x81,
-            0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
-            0x09,
-            0x38,  # Usage (Wheel)
-            0x15,
-            0x81,  # Logical Minimum (-127)
-            0x25,
-            0x7F,  # Logical Maximum (127)
-            0x75,
-            0x08,  # Report Size (8)
-            0x95,
-            0x01,  # Report Count (1)
-            0x81,
-            0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
-            0xC0,  # End Collection
-            0xC0,  # End Collection
+            # fmt: off
+            0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
+            0x09, 0x02,  # Usage (Mouse)
+            0xA1, 0x01,  # Collection (Application)
+            0x85, 0x02,  # Report ID (2)
+            0x09, 0x01,  # Usage (Pointer)
+            0xA1, 0x00,  # Collection (Physical)
+            0x05, 0x09,  # Usage Page (Button)
+            0x19, 0x01,  # Usage Minimum (0x01)
+            0x29, 0x05,  # Usage Maximum (0x05)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x25, 0x01,  # Logical Maximum (1)
+            0x95, 0x05,  # Report Count (5)
+            0x75, 0x01,  # Report Size (1)
+            0x81, 0x02,  # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            0x95, 0x01,  # Report Count (1)
+            0x75, 0x03,  # Report Size (3)
+            0x81, 0x01,  # Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
+            0x09, 0x30,  # Usage (X)
+            0x09, 0x31,  # Usage (Y)
+            0x15, 0x81,  # Logical Minimum (-127)
+            0x25, 0x7F,  # Logical Maximum (127)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x02,  # Report Count (2)
+            0x81, 0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+            0x09, 0x38,  # Usage (Wheel)
+            0x15, 0x81,  # Logical Minimum (-127)
+            0x25, 0x7F,  # Logical Maximum (127)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x01,  # Report Count (1)
+            0x81, 0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+            0xC0,        # End Collection (Physical)
+            0xC0,
+            # End Collection (Application)
+            # fmt: on
         )
     ),
     usage_page=0x1,
@@ -282,31 +224,21 @@ Device.MOUSE = Device(
 Device.CONSUMER_CONTROL = Device(
     descriptor=bytes(
         (
-            0x05,
-            0x0C,  # Usage Page (Consumer)
-            0x09,
-            0x01,  # Usage (Consumer Control)
-            0xA1,
-            0x01,  # Collection (Application)
-            0x85,
-            0x03,  # Report ID (3)
-            0x75,
-            0x10,  # Report Size (16)
-            0x95,
-            0x01,  # Report Count (1)
-            0x15,
-            0x01,  # Logical Minimum (1)
-            0x26,
-            0x8C,
-            0x02,  # Logical Maximum (652)
-            0x19,
-            0x01,  # Usage Minimum (Consumer Control)
-            0x2A,
-            0x8C,
-            0x02,  # Usage Maximum (AC Send)
-            0x81,
-            0x00,  # Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-            0xC0,  # End Collection
+            # fmt: off
+            0x05, 0x0C,  # Usage Page (Consumer)
+            0x09, 0x01,  # Usage (Consumer Control)
+            0xA1, 0x01,  # Collection (Application)
+            0x85, 0x03,  # Report ID (3)
+            0x75, 0x10,  # Report Size (16)
+            0x95, 0x01,  # Report Count (1)
+            0x15, 0x01,  # Logical Minimum (1)
+            0x26, 0x8C, 0x02,  # Logical Maximum (652)
+            0x19, 0x01,  # Usage Minimum (Consumer Control)
+            0x2A, 0x8C, 0x02,  # Usage Maximum (AC Send)
+            0x81, 0x00,  # Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            0xC0,
+            # End Collection
+            # fmt: on
         )
     ),
     usage_page=0x0C,
@@ -320,73 +252,41 @@ Device.CONSUMER_CONTROL = Device(
 Device.BOOT_KEYBOARD = Device(
     descriptor=bytes(
         (
-            0x05,
-            0x01,  # usage page (generic desktop ctrls)
-            0x09,
-            0x06,  # usage (keyboard)
-            0xA1,
-            0x01,  # collection (application)
-            0x05,
-            0x07,  # usage page (kbrd/keypad)
-            0x19,
-            0xE0,  # usage minimum (0xe0)
-            0x29,
-            0xE7,  # usage maximum (0xe7)
-            0x15,
-            0x00,  # logical minimum (0)
-            0x25,
-            0x01,  # logical maximum (1)
-            0x75,
-            0x01,  # report size (1)
-            0x95,
-            0x08,  # report count (8)
-            0x81,
-            0x02,  # input (data,var,abs,no wrap,linear,preferred state,no null position)
-            0x95,
-            0x01,  # report count (1)
-            0x75,
-            0x08,  # report size (8)
-            0x81,
-            0x01,  # input (const,array,abs,no wrap,linear,preferred state,no null position)
-            0x95,
-            0x03,  # report count (3)
-            0x75,
-            0x01,  # report size (1)
-            0x05,
-            0x08,  # usage page (leds)
-            0x19,
-            0x01,  # usage minimum (num lock)
-            0x29,
-            0x05,  # usage maximum (kana)
-            0x91,
-            0x02,  # output
-            # (data,var,abs,no wrap,linear,preferred state,no null position,non-volatile)
-            0x95,
-            0x01,  # report count (1)
-            0x75,
-            0x05,  # report size (5)
-            0x91,
-            0x01,  # output
-            # (const,array,abs,no wrap,linear,preferred state,no null position,non-volatile)
-            0x95,
-            0x06,  # report count (6)
-            0x75,
-            0x08,  # report size (8)
-            0x15,
-            0x00,  # logical minimum (0)
-            0x26,
-            0xFF,
-            0x00,  # logical maximum (255)
-            0x05,
-            0x07,  # usage page (kbrd/keypad)
-            0x19,
-            0x00,  # usage minimum (0x00)
-            0x2A,
-            0xFF,
-            0x00,  # usage maximum (0xff)
-            0x81,
-            0x00,  # input (data,array,abs,no wrap,linear,preferred state,no null position)
-            0xC0,  # end collection
+            # fmt: off
+            0x05, 0x01,  # usage page (generic desktop ctrls)
+            0x09, 0x06,  # usage (keyboard)
+            0xA1, 0x01,  # collection (application)
+            0x05, 0x07,  # usage page (kbrd/keypad)
+            0x19, 0xE0,  # usage minimum (0xe0)
+            0x29, 0xE7,  # usage maximum (0xe7)
+            0x15, 0x00,  # logical minimum (0)
+            0x25, 0x01,  # logical maximum (1)
+            0x75, 0x01,  # report size (1)
+            0x95, 0x08,  # report count (8)
+            0x81, 0x02,  # input (data,var,abs,no wrap,linear,preferred state,no null position)
+            0x95, 0x01,  # report count (1)
+            0x75, 0x08,  # report size (8)
+            0x81, 0x01,  # input (const,array,abs,no wrap,linear,preferred state,no null position)
+            0x95, 0x03,  # report count (3)
+            0x75, 0x01,  # report size (1)
+            0x05, 0x08,  # usage page (leds)
+            0x19, 0x01,  # usage minimum (num lock)
+            0x29, 0x05,  # usage maximum (kana)
+            0x91, 0x02,  # output (data,var,abs,no wrap,linear,preferred state,no null position,non-volatile)
+            0x95, 0x01,  # report count (1)
+            0x75, 0x05,  # report size (5)
+            0x91, 0x01,  # output (const,array,abs,no wrap,linear,preferred state,no null position,non-volatile)
+            0x95, 0x06,  # report count (6)
+            0x75, 0x08,  # report size (8)
+            0x15, 0x00,  # logical minimum (0)
+            0x26, 0xFF, 0x00,  # logical maximum (255)
+            0x05, 0x07,  # usage page (kbrd/keypad)
+            0x19, 0x00,  # usage minimum (0x00)
+            0x2A, 0xFF, 0x00,  # usage maximum (0xff)
+            0x81, 0x00,  # input (data,array,abs,no wrap,linear,preferred state,no null position)
+            0xC0,
+            # end collection
+            # fmt: on
         )
     ),
     usage_page=0x1,
@@ -396,71 +296,45 @@ Device.BOOT_KEYBOARD = Device(
     out_report_lengths=[1],
     name="boot keyboard gadget",
 )
+
 Device.BOOT_MOUSE = Device(
     descriptor=bytes(
         (
-            0x05,
-            0x01,  # Usage Page (Generic Desktop Ctrls)
-            0x09,
-            0x02,  # Usage (Mouse)
-            0xA1,
-            0x01,  # Collection (Application)
-            0x09,
-            0x01,  # Usage (Pointer)
-            0xA1,
-            0x00,  # Collection (Physical)
-            0x05,
-            0x09,  # Usage Page (Button)
-            0x19,
-            0x01,  # Usage Minimum (0x01)
-            0x29,
-            0x05,  # Usage Maximum (0x05)
-            0x15,
-            0x00,  # Logical Minimum (0)
-            0x25,
-            0x01,  # Logical Maximum (1)
-            0x95,
-            0x05,  # Report Count (5)
-            0x75,
-            0x01,  # Report Size (1)
-            0x81,
-            0x02,  # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-            0x95,
-            0x01,  # Report Count (1)
-            0x75,
-            0x03,  # Report Size (3)
-            0x81,
-            0x01,  # Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-            0x05,
-            0x01,  # Usage Page (Generic Desktop Ctrls)
-            0x09,
-            0x30,  # Usage (X)
-            0x09,
-            0x31,  # Usage (Y)
-            0x15,
-            0x81,  # Logical Minimum (-127)
-            0x25,
-            0x7F,  # Logical Maximum (127)
-            0x75,
-            0x08,  # Report Size (8)
-            0x95,
-            0x02,  # Report Count (2)
-            0x81,
-            0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
-            0x09,
-            0x38,  # Usage (Wheel)
-            0x15,
-            0x81,  # Logical Minimum (-127)
-            0x25,
-            0x7F,  # Logical Maximum (127)
-            0x75,
-            0x08,  # Report Size (8)
-            0x95,
-            0x01,  # Report Count (1)
-            0x81,
-            0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
-            0xC0,  # End Collection
-            0xC0,  # End Collection
+            # fmt: off
+            0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
+            0x09, 0x02,  # Usage (Mouse)
+            0xA1, 0x01,  # Collection (Application)
+            0x09, 0x01,  # Usage (Pointer)
+            0xA1, 0x00,  # Collection (Physical)
+            0x05, 0x09,  # Usage Page (Button)
+            0x19, 0x01,  # Usage Minimum (0x01)
+            0x29, 0x05,  # Usage Maximum (0x05)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x25, 0x01,  # Logical Maximum (1)
+            0x95, 0x05,  # Report Count (5)
+            0x75, 0x01,  # Report Size (1)
+            0x81, 0x02,  # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            0x95, 0x01,  # Report Count (1)
+            0x75, 0x03,  # Report Size (3)
+            0x81, 0x01,  # Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
+            0x09, 0x30,  # Usage (X)
+            0x09, 0x31,  # Usage (Y)
+            0x15, 0x81,  # Logical Minimum (-127)
+            0x25, 0x7F,  # Logical Maximum (127)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x02,  # Report Count (2)
+            0x81, 0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+            0x09, 0x38,  # Usage (Wheel)
+            0x15, 0x81,  # Logical Minimum (-127)
+            0x25, 0x7F,  # Logical Maximum (127)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x01,  # Report Count (1)
+            0x81, 0x06,  # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+            0xC0,        # End Collection
+            0xC0,
+            # End Collection
+            # fmt: on
         )
     ),
     usage_page=0x1,
@@ -469,6 +343,185 @@ Device.BOOT_MOUSE = Device(
     in_report_lengths=[4],
     out_report_lengths=[0],
     name="boot mouse gadget",
+)
+
+Device.GAMEPAD = Device(
+    descriptor=bytes(
+        (
+            # fmt: off
+            0x05, 0x01,  # Usage Page (Generic Desktop)
+            0x09, 0x05,  # Usage (Gamepad)
+            0xA1, 0x01,  # Collection (Application)
+            0x85, 0x04,  # Report ID (4)
+            # Buttons (16 bits)
+            0x05, 0x09,  # Usage Page (Button)
+            0x19, 0x01,  # Usage Minimum (Button 1)
+            0x29, 0x10,  # Usage Maximum (Button 16)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x25, 0x01,  # Logical Maximum (1)
+            0x75, 0x01,  # Report Size (1)
+            0x95, 0x10,  # Report Count (16)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Main axes: X, Y, Rx, Ry (4 axes, 16 bits each)
+            0x05, 0x01,  # Usage Page (Generic Desktop)
+            0x09, 0x30,  # Usage (X)
+            0x09, 0x31,  # Usage (Y)
+            0x09, 0x33,  # Usage (Rx)
+            0x09, 0x34,  # Usage (Ry)
+            0x16, 0x00, 0x80,  # Logical Minimum (-32768)
+            0x26, 0xFF, 0x7F,  # Logical Maximum (32767)
+            0x75, 0x10,  # Report Size (16)
+            0x95, 0x04,  # Report Count (4)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Triggers: Lt, Rt (2 axes, 8 bits each)
+            0x05, 0x01,  # Usage Page (Generic Desktop)
+            0x09, 0x32,  # Usage (Z) - Left Trigger
+            0x09, 0x35,  # Usage (Rz) - Right Trigger
+            0x15, 0x00,  # Logical Minimum (0)
+            0x26, 0xFF, 0x00,  # Logical Maximum (255)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x02,  # Report Count (2)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # HAT switches (4 HATs, 4 bits each = 16 bits)
+            0x05, 0x01,  # Usage Page (Generic Desktop)
+            0x09, 0x39,  # Usage (Hat switch)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x25, 0x07,  # Logical Maximum (7)
+            0x35, 0x00,  # Physical Minimum (0)
+            0x46, 0x3B, 0x01,  # Physical Maximum (315)
+            0x65, 0x14,  # Unit (Degrees)
+            0x75, 0x04,  # Report Size (4)
+            0x95, 0x04,  # Report Count (4)
+            0x81, 0x42,  # Input (Data, Variable, Absolute, Null State)
+            0xC0,
+            # End Collection
+            # fmt: on
+        )
+    ),
+    usage_page=0x01,
+    usage=0x05,
+    report_ids=(4,),
+    in_report_lengths=(
+        15,
+    ),  # 15 bytes: 1 (Report ID) + 2 (Buttons) + 8 (4 main axes) + 2 (2 triggers) + 2 (4 HAT switches)
+    out_report_lengths=(0,),
+    name="gamepad gadget",
+)
+
+Device.DIGITIZER = Device(
+    descriptor=bytes(
+        (
+            # fmt: off
+            0x05, 0x0D,  # Usage Page (Digitizer)
+            0x09, 0x02,  # Usage (Pen)
+            0xA1, 0x01,  # Collection (Application)
+            0x85, 0x05,  # Report ID (5)
+            # Tool types and button states (8 bits)
+            0x05, 0x0D,  # Usage Page (Digitizer)
+            0x09, 0x20,  # Usage (Stylus)
+            0x09, 0x22,  # Usage (Finger)
+            0x09, 0x23,  # Usage (Touch Screen)
+            0x09, 0x24,  # Usage (Touch Pad)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x25, 0x0F,  # Logical Maximum (15)
+            0x75, 0x04,  # Report Size (4)
+            0x95, 0x01,  # Report Count (1)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Button states
+            0x09, 0x42,  # Usage (Tip Switch)
+            0x09, 0x44,  # Usage (Barrel Switch)
+            0x09, 0x45,  # Usage (Second Barrel Switch)
+            0x09, 0x46,  # Usage (Eraser)
+            0x09, 0x3C,  # Usage (Invert)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x25, 0x01,  # Logical Maximum (1)
+            0x75, 0x01,  # Report Size (1)
+            0x95, 0x05,  # Report Count (5)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Slot and tracking info (7 bits: 1 bit in_range, 6 bits contact identifier)
+            0x09, 0x32,  # Usage (In Range)
+            0x09, 0x51,  # Usage (Contact Identifier)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x25, 0x3F,  # Logical Maximum (63)
+            0x75, 0x07,  # Report Size (7)
+            0x95, 0x01,  # Report Count (1)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # X, Y coordinates (16 bits each)
+            0x05, 0x01,  # Usage Page (Generic Desktop)
+            0x09, 0x30,  # Usage (X)
+            0x09, 0x31,  # Usage (Y)
+            0x16, 0x00, 0x00,  # Logical Minimum (0)
+            0x26, 0xFF, 0x7F,  # Logical Maximum (32767)
+            0x75, 0x10,  # Report Size (16)
+            0x95, 0x02,  # Report Count (2)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Pressure (13 bits)
+            0x05, 0x0D,  # Usage Page (Digitizer)
+            0x09, 0x30,  # Usage (Tip Pressure)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x26, 0xFF, 0x1F,  # Logical Maximum (8191)
+            0x75, 0x0D,  # Report Size (13)
+            0x95, 0x01,  # Report Count (1)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Distance and Tilt
+            0x09, 0x32,  # Usage (Distance)
+            0x09, 0x3D,  # Usage (X Tilt)
+            0x09, 0x3E,  # Usage (Y Tilt)
+            0x15, 0x81,  # Logical Minimum (-127)
+            0x25, 0x7F,  # Logical Maximum (127)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x03,  # Report Count (3)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Touch measurements
+            0x09, 0x48,  # Usage (Width)
+            0x09, 0x49,  # Usage (Height)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x26, 0xFF, 0x00,  # Logical Maximum (255)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x04,  # Report Count (4)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Orientation
+            0x09, 0x3F,  # Usage (Azimuth)
+            0x15, 0x81,  # Logical Minimum (-127)
+            0x25, 0x7F,  # Logical Maximum (127)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x01,  # Report Count (1)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Additional fields (MT position, pressure, misc)
+            0x05, 0x0D,  # Usage Page (Digitizer)
+            0x09, 0x30,  # Usage (X)
+            0x09, 0x31,  # Usage (Y)
+            0x16, 0x00, 0x00,  # Logical Minimum (0)
+            0x26, 0xFF, 0x7F,  # Logical Maximum (32767)
+            0x75, 0x10,  # Report Size (16)
+            0x95, 0x02,  # Report Count (2)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # MT pressure and tool type
+            0x09, 0x30,  # Usage (Pressure)
+            0x09, 0x20,  # Usage (Stylus)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x26, 0xFF, 0x00,  # Logical Maximum (255)
+            0x75, 0x08,  # Report Size (8)
+            0x95, 0x02,  # Report Count (2)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            # Misc and Blob ID
+            0x09, 0x56,  # Usage (Scan Time)
+            0x15, 0x00,  # Logical Minimum (0)
+            0x26, 0xFF, 0xFF,  # Logical Maximum (65535)
+            0x75, 0x10,  # Report Size (16)
+            0x95, 0x02,  # Report Count (2)
+            0x81, 0x02,  # Input (Data, Variable, Absolute)
+            0xC0,
+            # End Collection
+            # fmt: on
+        )
+    ),
+    usage_page=0x0D,
+    usage=0x02,  # Pen
+    report_ids=(5,),
+    in_report_lengths=(27,),  # Updated to match the new report size
+    out_report_lengths=(0,),
+    name="digitizer gadget",
 )
 
 

@@ -402,7 +402,7 @@ Device.GAMEPAD = Device(
     usage=0x05,
     report_ids=(4,),
     in_report_lengths=(
-        15,
+        32,
     ),  # 15 bytes: 1 (Report ID) + 2 (Buttons) + 8 (4 main axes) + 2 (2 triggers) + 2 (4 HAT switches)
     out_report_lengths=(0,),
     name="gamepad gadget",

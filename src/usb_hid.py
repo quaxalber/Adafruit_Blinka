@@ -11,7 +11,7 @@ For now using report ids in the descriptor
 * Author(s): Björn Bösel
 """
 
-from typing import Sequence
+from typing import Sequence, Dict
 from pathlib import Path
 import os
 import atexit
@@ -34,6 +34,16 @@ class Device:
     HID Device specification: see
     https://github.com/adafruit/circuitpython/blob/main/shared-bindings/usb_hid/Device.c
     """
+
+    KEYBOARD = None
+    BOOT_KEYBOARD = None
+    MOUSE = None
+    BOOT_MOUSE = None
+    CONSUMER_CONTROL = None
+    GAMEPAD = None
+    DIGITIZER = None
+
+    _device_fds: Dict[str, int] = {}  # Cache for file descriptors
 
     def __init__(
         self,
@@ -61,18 +71,6 @@ class Device:
 
     def __repr__(self):
         return f"{self.name} ({self.path})"
-
-    def send_report(self, report: bytearray, report_id: int = None):
-        """Send an HID report. If the device descriptor specifies zero or one report id's,
-        you can supply `None` (the default) as the value of ``report_id``.
-        Otherwise you must specify which report id to use when sending the report.
-        """
-        report_id = report_id or self.report_ids[0]
-        device_path = self.get_device_path(report_id)
-        with open(device_path, "rb+") as fd:
-            if report_id > 0:
-                report = bytearray(report_id.to_bytes(1, "big")) + report
-            fd.write(report)
 
     @property
     def last_received_report(
@@ -114,13 +112,65 @@ class Device:
         device_path = "/dev/hidg%s" % device
         return device_path
 
-    KEYBOARD = None
-    BOOT_KEYBOARD = None
-    MOUSE = None
-    BOOT_MOUSE = None
-    CONSUMER_CONTROL = None
-    GAMEPAD = None
-    DIGITIZER = None
+    def _get_nonblocking_fd(self, device_path: str) -> int:
+        """
+        Get or create a non-blocking file descriptor for the device.
+
+        :param device_path: Path to the HID device
+        :return: File descriptor
+        :raises: OSError if device cannot be opened
+        """
+        if device_path in self._device_fds:
+            return self._device_fds[device_path]
+
+        fd = os.open(device_path, os.O_RDWR | os.O_NONBLOCK)
+        self._device_fds[device_path] = fd
+        return fd
+
+    def _close_fd(self, device_path: str) -> None:
+        """
+        Close the file descriptor for a device if it exists.
+
+        :param device_path: Path to the HID device
+        """
+        if device_path in self._device_fds:
+            try:
+                os.close(self._device_fds[device_path])
+            except OSError:
+                pass  # Ignore errors during close
+            del self._device_fds[device_path]
+
+    def send_report(self, report: bytearray, report_id: int = None) -> None:
+        """
+        Send an HID report using non-blocking I/O.
+
+        :param report: The HID report to send
+        :param report_id: Optional report ID
+        :raises: BlockingIOError if write would block
+        :raises: OSError if device cannot be accessed
+        """
+        report_id = report_id or self.report_ids[0]
+        device_path = self.get_device_path(report_id)
+
+        try:
+            fd = self._get_nonblocking_fd(device_path)
+
+            if report_id > 0:
+                report = bytearray(report_id.to_bytes(1, "big")) + report
+
+            os.write(fd, report)
+
+        except OSError as e:
+            if e.errno == 11:  # EAGAIN/EWOULDBLOCK
+                raise BlockingIOError("HID write would block")
+            # For other errors, close the fd and re-raise
+            self._close_fd(device_path)
+            raise
+
+    def __del__(self):
+        """Cleanup file descriptors on object destruction"""
+        for device_path in list(self._device_fds.keys()):
+            self._close_fd(device_path)
 
 
 Device.KEYBOARD = Device(

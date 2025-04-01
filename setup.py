@@ -43,7 +43,7 @@ if os.path.exists("/proc/device-tree/compatible"):
 
 setup(
     name="quax-Blinka",
-    version="8.29.0",
+    version="8.29.1",
     description="CircuitPython APIs for non-CircuitPython versions of Python such as CPython on Linux and MicroPython.",
     long_description=long_description,
     long_description_content_type="text/x-rst",

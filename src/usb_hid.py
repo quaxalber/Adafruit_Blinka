@@ -112,6 +112,18 @@ class Device:
         device_path = "/dev/hidg%s" % device
         return device_path
 
+    def send_report(self, report: bytearray, report_id: int = None):
+        """Send an HID report. If the device descriptor specifies zero or one report id's,
+        you can supply `None` (the default) as the value of ``report_id``.
+        Otherwise you must specify which report id to use when sending the report.
+        """
+        report_id = report_id or self.report_ids[0]
+        device_path = self.get_device_path(report_id)
+        with open(device_path, "rb+") as fd:
+            if report_id > 0:
+                report = bytearray(report_id.to_bytes(1, "big")) + report
+            fd.write(report)
+
     def _get_nonblocking_fd(self, device_path: str) -> int:
         """
         Get or create a non-blocking file descriptor for the device.
@@ -140,7 +152,7 @@ class Device:
                 pass  # Ignore errors during close
             del self._device_fds[device_path]
 
-    def send_report(self, report: bytearray, report_id: int = None) -> None:
+    def send_report_nonblocking(self, report: bytearray, report_id: int = None) -> None:
         """
         Send an HID report using non-blocking I/O.
 

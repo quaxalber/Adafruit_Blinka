@@ -406,67 +406,84 @@ Device.BOOT_MOUSE = Device(
     out_report_lengths=[0],
     name="boot mouse gadget",
 )
+# Report ID constants
+GAMEPAD_REPORT_ID = 4
+RUMBLE_REPORT_ID = 5
 
 Device.GAMEPAD = Device(
     descriptor=bytes(
         (
             # fmt: off
-            0x05, 0x01,  # Usage Page (Generic Desktop)
-            0x09, 0x05,  # Usage (Gamepad)
-            0xA1, 0x01,  # Collection (Application)
-            0x85, 0x04,  # Report ID (4)
-            # Buttons (16 bits)
-            0x05, 0x09,  # Usage Page (Button)
-            0x19, 0x01,  # Usage Minimum (Button 1)
-            0x29, 0x10,  # Usage Maximum (Button 16)
-            0x15, 0x00,  # Logical Minimum (0)
-            0x25, 0x01,  # Logical Maximum (1)
-            0x75, 0x01,  # Report Size (1)
-            0x95, 0x10,  # Report Count (16)
-            0x81, 0x02,  # Input (Data, Variable, Absolute)
-            # Main axes: X, Y, Rx, Ry (4 axes, 16 bits each)
-            0x05, 0x01,  # Usage Page (Generic Desktop)
-            0x09, 0x30,  # Usage (X)
-            0x09, 0x31,  # Usage (Y)
-            0x09, 0x33,  # Usage (Rx)
-            0x09, 0x34,  # Usage (Ry)
-            0x16, 0x00, 0x80,  # Logical Minimum (-32768)
-            0x26, 0xFF, 0x7F,  # Logical Maximum (32767)
-            0x75, 0x10,  # Report Size (16)
-            0x95, 0x04,  # Report Count (4)
-            0x81, 0x02,  # Input (Data, Variable, Absolute)
-            # Triggers: Lt, Rt (2 axes, 8 bits each)
-            0x05, 0x01,  # Usage Page (Generic Desktop)
-            0x09, 0x32,  # Usage (Z) - Left Trigger
-            0x09, 0x35,  # Usage (Rz) - Right Trigger
-            0x15, 0x00,  # Logical Minimum (0)
-            0x26, 0xFF, 0x00,  # Logical Maximum (255)
-            0x75, 0x08,  # Report Size (8)
-            0x95, 0x02,  # Report Count (2)
-            0x81, 0x02,  # Input (Data, Variable, Absolute)
-            # HAT switches (4 HATs, 4 bits each = 16 bits)
-            0x05, 0x01,  # Usage Page (Generic Desktop)
-            0x09, 0x39,  # Usage (Hat switch)
-            0x15, 0x00,  # Logical Minimum (0)
-            0x25, 0x07,  # Logical Maximum (7)
-            0x35, 0x00,  # Physical Minimum (0)
-            0x46, 0x3B, 0x01,  # Physical Maximum (315)
-            0x65, 0x14,  # Unit (Degrees)
-            0x75, 0x04,  # Report Size (4)
-            0x95, 0x04,  # Report Count (4)
-            0x81, 0x42,  # Input (Data, Variable, Absolute, Null State)
+            0x05, 0x01,        # Usage Page (Generic Desktop Ctrls)
+            0x09, 0x05,        # Usage (Gamepad)
+            0xA1, 0x01,        # Collection (Application)
+            # --------------------------------------------------------------------------
+            # Report ID 1: Gamepad Input State
+            0x85, GAMEPAD_REPORT_ID, #   Report ID (1)
+            # --------------------------------------------------------------------------
+            # Buttons (16 buttons, 1 bit each)
+            0x05, 0x09,        #   Usage Page (Button)
+            0x19, 0x01,        #   Usage Minimum (Button 1)
+            0x29, 0x10,        #   Usage Maximum (Button 16)
+            0x15, 0x00,        #   Logical Minimum (0)
+            0x25, 0x01,        #   Logical Maximum (1)
+            0x75, 0x01,        #   Report Size (1)
+            0x95, 0x10,        #   Report Count (16)
+            0x81, 0x02,        #   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            # --------------------------------------------------------------------------
+            # Hat Switch (D-Pad: 4 bits for 8 directions + neutral)
+            0x05, 0x01,        #   Usage Page (Generic Desktop Ctrls)
+            0x09, 0x39,        #   Usage (Hat switch)
+            0x15, 0x00,        #   Logical Minimum (0)
+            0x25, 0x07,        #   Logical Maximum (7) # 8 directions
+            0x35, 0x00,        #   Physical Minimum (0)
+            0x46, 0x3B, 0x01,  #   Physical Maximum (315) # degrees
+            0x65, 0x14,        #   Unit (System: English Rotation, Length: Centimeter) -> Degrees
+            0x75, 0x04,        #   Report Size (4)
+            0x95, 0x01,        #   Report Count (1)
+            0x81, 0x42,        #   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,Null State) # Null state for neutral
+            # Padding to byte boundary (4 bits needed)
+            0x75, 0x04,        #   Report Size (4)
+            0x95, 0x01,        #   Report Count (1)
+            0x81, 0x03,        #   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position) # Constant Padding
+            # --------------------------------------------------------------------------
+            # Analog Axes (6 axes: LX, LY, RX, RY, L2, R2) - 8 bits each (0-255)
+            0x05, 0x01,        #   Usage Page (Generic Desktop Ctrls)
+            0x09, 0x30,        #   Usage (X) - Left Stick X
+            0x09, 0x31,        #   Usage (Y) - Left Stick Y
+            0x09, 0x33,        #   Usage (Rx) - Right Stick X
+            0x09, 0x34,        #   Usage (Ry) - Right Stick Y
+            0x09, 0x32,        #   Usage (Z) - Left Trigger L2
+            0x09, 0x35,        #   Usage (Rz) - Right Trigger R2
+            0x15, 0x00,        #   Logical Minimum (0)
+            0x26, 0xFF, 0x00,  #   Logical Maximum (255)
+            0x75, 0x08,        #   Report Size (8)
+            0x95, 0x06,        #   Report Count (6)
+            0x81, 0x02,        #   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            # --------------------------------------------------------------------------
+            # Report ID 2: Rumble Output Control (Host -> Device)
+            # Using a Vendor-Defined page for simplicity, could also use PID Page (0x0F)
+            # 0x05, 0x0F,      #   Usage Page (Physical Interface Device)
+            # 0x09, 0x97,      #   Usage (Set Effect Report) ? Varies. Let's use Vendor.
+            0x06, 0x00, 0xFF,  #   Usage Page (Vendor Defined Page 1)
+            0x85, RUMBLE_REPORT_ID, # Report ID (2)
+            0x09, 0x01,        #   Usage (Vendor Usage 1) - Rumble Control
+            0x15, 0x00,        #   Logical Minimum (0)
+            0x26, 0xFF, 0x00,  #   Logical Maximum (255) # Rumble intensity
+            0x75, 0x08,        #   Report Size (8)
+            0x95, 0x01,        #   Report Count (1)
+            0x91, 0x02,        #   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+            # --------------------------------------------------------------------------
             0xC0,
             # End Collection
             # fmt: on
         )
     ),
-    usage_page=0x01,
-    usage=0x05,
-    report_ids=(4,),
-    in_report_lengths=(
-        32,
-    ),  # 15 bytes: 1 (Report ID) + 2 (Buttons) + 8 (4 main axes) + 2 (2 triggers) + 2 (4 HAT switches)
-    out_report_lengths=(0,),
+    usage_page=0x01,  # Generic Desktop Ctrls
+    usage=0x05,  # Gamepad
+    report_ids=(GAMEPAD_REPORT_ID, RUMBLE_REPORT_ID),  # Specify report IDs
+    in_report_lengths=(10,),  # Length for Report ID 4 (Input)
+    out_report_lengths=(2,),  # Length for Report ID 5 (Output)
     name="gamepad gadget",
 )
 
@@ -477,7 +494,7 @@ Device.DIGITIZER = Device(
             0x05, 0x0D,  # Usage Page (Digitizer)
             0x09, 0x02,  # Usage (Pen)
             0xA1, 0x01,  # Collection (Application)
-            0x85, 0x05,  # Report ID (5)
+            0x85, 0x06,  # Report ID (6)
             # Tool types and button states (8 bits)
             0x05, 0x0D,  # Usage Page (Digitizer)
             0x09, 0x20,  # Usage (Stylus)
@@ -580,7 +597,7 @@ Device.DIGITIZER = Device(
     ),
     usage_page=0x0D,
     usage=0x02,  # Pen
-    report_ids=(5,),
+    report_ids=(6,),
     in_report_lengths=(27,),  # Updated to match the new report size
     out_report_lengths=(0,),
     name="digitizer gadget",

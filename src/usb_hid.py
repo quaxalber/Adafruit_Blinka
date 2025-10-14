@@ -17,7 +17,7 @@ import os
 import atexit
 import sys
 
-for module in ["dwc2", "libcomposite"]:
+for module in ["libcomposite"]:
     if Path("/proc/modules").read_text(encoding="utf-8").find(module) == -1:
         print(  # pylint: disable=broad-exception-raised
             "%s module not present in your kernel. did you insmod it?" % module

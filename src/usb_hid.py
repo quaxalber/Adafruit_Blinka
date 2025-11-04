@@ -16,12 +16,67 @@ from pathlib import Path
 import os
 import atexit
 import sys
+import gzip
 
-for module in ["libcomposite"]:
-    if Path("/proc/modules").read_text(encoding="utf-8").find(module) == -1:
-        print(  # pylint: disable=broad-exception-raised
-            "%s module not present in your kernel. did you insmod it?" % module
+MODULE_CONFIG = {
+    "dwc2": "CONFIG_USB_DWC2",
+    "libcomposite": "CONFIG_USB_LIBCOMPOSITE",
+}
+
+
+def _safe_read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return ""
+
+
+def _read_kernel_config() -> set[str]:
+    config_paths = [
+        Path(f"/boot/config-{os.uname().release}"),
+        Path("/proc/config.gz"),
+    ]
+    symbols: set[str] = set()
+    for cfg in config_paths:
+        if not cfg.exists():
+            continue
+        if cfg.suffix == ".gz":
+            try:
+                with gzip.open(cfg, "rt", encoding="utf-8", errors="ignore") as fh:
+                    data = fh.read()
+            except OSError:
+                continue
+        else:
+            data = _safe_read_text(cfg)
+        if not data:
+            continue
+        symbols.update(
+            line.strip() for line in data.splitlines() if line.startswith("CONFIG_")
         )
+    return symbols
+
+
+def _module_available(module: str, config_symbol: str, config_lines: set[str]) -> bool:
+    modules_txt = _safe_read_text(Path("/proc/modules"))
+    for line in modules_txt.splitlines():
+        parts = line.split()
+        if parts and parts[0] == module:
+            return True
+    if Path(f"/sys/module/{module}").exists():
+        return True
+    for suffix in ("=y", "=m"):
+        if f"{config_symbol}{suffix}" in config_lines:
+            return True
+    return False
+
+
+_CONFIG_CACHE = _read_kernel_config()
+
+for module, config_symbol in MODULE_CONFIG.items():
+    if _module_available(module, config_symbol, _CONFIG_CACHE):
+        continue
+    print("%s module not present in your kernel. did you insmod it?" % module)
+
 this = sys.modules[__name__]
 
 this.gadget_root = "/sys/kernel/config/usb_gadget/adafruit-blinka"

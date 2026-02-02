@@ -976,7 +976,7 @@ def enable(requested_devices: Sequence[Device]) -> None:
                 "%s" % device.protocol, encoding="utf-8"
             )
             Path("%s/report_length" % function_root).write_text(
-                "%s" % device.report_length_for(report_index), encoding="utf-8"
+                "%s" % (device.report_length_for(report_index) + 1), encoding="utf-8"
             )
             Path("%s/subclass" % function_root).write_text(
                 "%s" % device.subclass, encoding="utf-8"

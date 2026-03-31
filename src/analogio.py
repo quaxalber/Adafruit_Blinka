@@ -9,7 +9,6 @@ Not supported by all boards.
 
 * Author(s): Carter Nelson, Melissa LeBlanc-Williams
 """
-
 import sys
 
 from adafruit_blinka.agnostic import detector
@@ -22,6 +21,8 @@ if detector.board.microchip_mcp2221:
 elif detector.board.greatfet_one:
     from adafruit_blinka.microcontroller.nxp_lpc4330.analogio import AnalogIn
     from adafruit_blinka.microcontroller.nxp_lpc4330.analogio import AnalogOut
+elif detector.board.any_odroid_40_pin:
+    from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
 elif detector.board.any_siemens_simatic_iot2000:
     from adafruit_blinka.microcontroller.am65xx.analogio import AnalogIn
     from adafruit_blinka.microcontroller.am65xx.analogio import AnalogOut
@@ -31,9 +32,15 @@ elif detector.chip.RK3399:
     from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
 elif detector.chip.RK3588:
     from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
+elif detector.chip.RK3588S:
+    from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
 elif detector.chip.RK3568:
     from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
 elif detector.chip.RK3566:
+    from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
+elif detector.chip.RV1103:
+    from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
+elif detector.chip.RV1106:
     from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
 elif detector.chip.IMX6ULL:
     from adafruit_blinka.microcontroller.generic_linux.sysfs_analogin import AnalogIn
@@ -60,6 +67,15 @@ elif detector.board.qtpy_u2if:
 elif detector.board.itsybitsy_u2if:
     from adafruit_blinka.microcontroller.rp2040_u2if.analogio import (
         AnalogIn_ItsyBitsy as AnalogIn,
+    )
+elif detector.board.radxa_x4_u2if:
+    from adafruit_blinka.microcontroller.rp2040_u2if.analogio import (
+        AnalogIn_Radxa_X4 as AnalogIn,
+    )
+elif detector.board.OS_AGNOSTIC_BOARD:
+    from adafruit_blinka.microcontroller.generic_agnostic_board.analogio import AnalogIn
+    from adafruit_blinka.microcontroller.generic_agnostic_board.analogio import (
+        AnalogOut,
     )
 else:
     raise NotImplementedError("analogio not supported for this board.")

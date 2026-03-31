@@ -16,8 +16,13 @@ from adafruit_blinka.agnostic import detector
 
 # pylint: disable=unused-import
 
-if detector.board.any_raspberry_pi:
-    from adafruit_blinka.microcontroller.bcm283x.pwmio.PWMOut import PWMOut
+if detector.board.any_raspberry_pi_5_board:
+    from adafruit_blinka.microcontroller.generic_linux.lgpio_pwmout import PWMOut
+elif detector.board.any_raspberry_pi:
+    # Pi 4 or lower
+    from adafruit_blinka.microcontroller.generic_linux.rpi_gpio_pwmout import PWMOut
+elif detector.board.any_bananapi:
+    from adafruit_blinka.microcontroller.generic_linux.sysfs_pwmout import PWMOut
 elif detector.board.any_coral_board:
     from adafruit_blinka.microcontroller.generic_linux.sysfs_pwmout import PWMOut
 elif detector.board.any_giant_board:
@@ -42,6 +47,16 @@ elif detector.board.any_lubancat:
     from adafruit_blinka.microcontroller.generic_linux.sysfs_pwmout import PWMOut
 elif detector.board.pico_u2if:
     from adafruit_blinka.microcontroller.rp2040_u2if.pwmio import PWMOut
+elif detector.board.any_jetson_board:
+    from adafruit_blinka.microcontroller.tegra.PWMOut import PWMOut
+elif detector.board.any_luckfox_pico_board:
+    from adafruit_blinka.microcontroller.generic_linux.sysfs_pwmout import PWMOut
+elif detector.board.any_starfive_id:
+    from adafruit_blinka.microcontroller.starfive.JH7110.pwmio import PWMOut
+elif detector.board.any_horizon_board:
+    from adafruit_blinka.microcontroller.horizon.pwmio.PWMOut import PWMOut
+elif detector.board.OS_AGNOSTIC_BOARD:
+    from adafruit_blinka.microcontroller.generic_agnostic_board.PWMOut import PWMOut
 elif (
     detector.board.feather_u2if
     or detector.board.feather_can_u2if

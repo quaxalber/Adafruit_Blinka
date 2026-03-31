@@ -1,9 +1,9 @@
-# SPDX-FileCopyrightText: 2023 Melissa LeBlanc-Williams for Adafruit Industries
+# SPDX-FileCopyrightText: 2024 Hajime Fujimoto
 #
 # SPDX-License-Identifier: MIT
-"""Pin definitions for Raspberry Pi 5 models using the BCM2712."""
+"""Pin definitions for RDK-X3."""
 
-from adafruit_blinka.microcontroller.bcm2712 import pin
+from adafruit_blinka.microcontroller.horizon.sunrise_x3 import pin
 
 D0 = pin.D0
 D1 = pin.D1
@@ -44,12 +44,8 @@ D16 = pin.D16
 D17 = pin.D17
 D18 = pin.D18
 D19 = pin.D19
-MISO_1 = pin.D19
 D20 = pin.D20
-MOSI_1 = pin.D20
 D21 = pin.D21
-SCLK_1 = pin.D21
-SCK_1 = pin.D21
 D22 = pin.D22
 D23 = pin.D23
 D24 = pin.D24

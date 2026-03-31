@@ -2,11 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 """Broadcom BCM2711 pin names"""
-from RPi import GPIO
-from adafruit_blinka.microcontroller.bcm283x.pin import Pin
 
-GPIO.setmode(GPIO.BCM)  # Use BCM pins D4 = GPIO #4
-GPIO.setwarnings(False)  # shh!
+# Use RPi.GPIO pins for Raspberry Pi 4
+from adafruit_blinka.microcontroller.generic_linux.rpi_gpio_pin import Pin
 
 D0 = Pin(0)
 D1 = Pin(1)

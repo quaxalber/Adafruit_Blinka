@@ -8,6 +8,8 @@
 * Author(s): cefn
 """
 
+import os
+
 
 class Enum:
     """
@@ -72,8 +74,46 @@ class Lockable(ContextManaged):
         """Release the lock so others may use the resource."""
         if self._locked:
             self._locked = False
-        else:
-            raise ValueError("Not locked")
+
+
+def load_settings_toml():
+    """Load values from settings.toml into os.environ, so that os.getenv returns them.
+    Note: This does not work in MicroPython because of the tomllib module not being available.
+    """
+    try:
+        import tomllib
+    except ImportError:
+        import toml as tomllib
+
+    if not os.path.isfile("settings.toml"):
+        raise FileNotFoundError("settings.toml not found in current directory.")
+
+    print("settings.toml found. Updating environment variables:")
+    with open("settings.toml", "rb") as toml_file:
+        try:
+            settings = tomllib.load(toml_file)
+        except tomllib.TOMLDecodeError as e:
+            raise tomllib.TOMLDecodeError("Error with settings.toml file.") from e
+
+    invalid_types = set()
+    for key, value in settings.items():
+        if not isinstance(value, (bool, int, float, str)):
+            invalid_types.add(type(value).__name__)
+    if invalid_types:
+        invalid_types_string = ", ".join(invalid_types)
+        raise ValueError(
+            f"The types: '{invalid_types_string}' are not supported in settings.toml."
+        )
+
+    for key, value in settings.items():
+        key = str(key)
+        if key in os.environ:
+            print(f" - {key} already exists in environment")
+            continue
+        os.environ[key] = str(value)
+        print(f" - {key} added")
+
+    return settings
 
 
 def patch_system():

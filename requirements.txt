@@ -1,4 +1,4 @@
-Adafruit-PlatformDetect>=3.53.0
+Adafruit-PlatformDetect>=3.70.1
 Adafruit-PureIO>=1.1.7
 Jetson.GPIO; platform_machine=='aarch64'
 RPi.GPIO; platform_machine=='armv7l' or platform_machine=='armv6l' or platform_machine=='aarch64'
@@ -7,4 +7,4 @@ sysv_ipc>=1.1.0; sys_platform == 'linux' and platform_machine!='mips'
 pyftdi>=0.40.0
 binho-host-adapter>=0.1.6
 numpy>=1.21.5
-quax-circuitpython-typing
+adafruit-circuitpython-typing

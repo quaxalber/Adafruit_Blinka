@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: Unlicense
 name: Release Actions
-
 on:
   workflow_dispatch:
-
+  release:
+    types: [published]
 jobs:
   upload-pypi:
     runs-on: ubuntu-latest

@@ -10,24 +10,38 @@
 
 import io
 import os
-import sys
+import glob
 
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
+
+
+def yellow_text(text: str) -> str:
+    return f"\033[33m{text}\033[0m"
+
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
 with io.open(os.path.join(here, "README.rst"), encoding="utf-8") as f:
     long_description = "\n" + f.read()
 
+if not glob.glob("//usr//include//python3.*//Python.h"):
+    raise RuntimeError(
+        "This package requires a Python development environment. "
+        "Please install the python3-dev package for your distribution."
+    )
+
 board_reqs = []
+raspberry_pi = False
 if os.path.exists("/proc/device-tree/compatible"):
     with open("/proc/device-tree/compatible", "rb") as f:
         compat = f.read()
+    # Jetson Nano, TX2, Xavier, etc
     if b"nvidia,tegra" in compat:
         board_reqs = ["Jetson.GPIO"]
-    if (
+    # Pi 5 and Earlier
+    elif (
         b"brcm,bcm2835" in compat
         or b"brcm,bcm2836" in compat
         or b"brcm,bcm2837" in compat
@@ -35,10 +49,15 @@ if os.path.exists("/proc/device-tree/compatible"):
         or b"brcm,bcm2711" in compat
         or b"brcm,bcm2712" in compat
     ):
-        board_reqs = ["RPi.GPIO", "rpi_ws281x>=4.0.0", "sysv_ipc>=1.1.0"]
-    if (
-        b"ti,am335x" in compat
-    ):  # BeagleBone Black, Green, PocketBeagle, BeagleBone AI, etc.
+        board_reqs = [
+            "rpi_ws281x>=4.0.0",
+            "lgpio;python_version<'3.13'",
+            "RPi.GPIO",
+            "Adafruit-Blinka-Raspberry-Pi5-Neopixel",
+        ]
+        raspberry_pi = True
+    # BeagleBone Black, Green, PocketBeagle, BeagleBone AI, etc.
+    elif b"ti,am335x" in compat:
         board_reqs = ["Adafruit_BBIO"]
 
 setup(
@@ -71,6 +90,10 @@ setup(
         "usb_hid",
     ],
     package_data={
+        "adafruit_blinka": [
+            "../board_imports.json",
+            "../microcontroller_imports.json",
+        ],
         "adafruit_blinka.microcontroller.bcm283x.pulseio": [
             "libgpiod_pulsein",
             "libgpiod_pulsein64",
@@ -82,10 +105,13 @@ setup(
     },
     include_package_data=True,
     install_requires=[
-        "Adafruit-PlatformDetect>=3.53.0",
+        "Adafruit-PlatformDetect>=3.70.1",
         "Adafruit-PureIO>=1.1.7",
+        "binho-host-adapter>=0.1.6",
         "pyftdi>=0.40.0",
         "adafruit-circuitpython-typing",
+        "sysv_ipc>=1.1.0;sys_platform=='linux' and platform_machine!='mips'",
+        "toml>=0.10.2;python_version<'3.11'",
     ]
     + board_reqs,
     license="MIT",
@@ -99,3 +125,10 @@ setup(
         "Programming Language :: Python :: Implementation :: MicroPython",
     ],
 )
+
+if raspberry_pi and os.sys.version_info >= (3, 13):
+    print(
+        yellow_text(
+            "\n*** Raspberry Pi 5 and later: lgpio will need to be installed manually. See the lgpio homepage for more details: http://abyz.me.uk/lg/download.html ***"
+        )
+    )

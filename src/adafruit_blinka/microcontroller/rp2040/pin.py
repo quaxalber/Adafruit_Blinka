@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 """RP2040 pins"""
 
-from ..generic_micropython import Pin
+from adafruit_blinka.microcontroller.generic_micropython import Pin
 
 GP0 = Pin(0)
 GP1 = Pin(1)
@@ -88,12 +88,36 @@ spiPorts = (
 uartPorts = (
     (0, GP0, GP1),
     (0, GP0, GP13),
+    (0, GP0, GP17),
+    (0, GP0, GP29),
     (0, GP12, GP1),
     (0, GP12, GP13),
+    (0, GP12, GP17),
+    (0, GP12, GP29),
+    (0, GP16, GP1),
+    (0, GP16, GP13),
+    (0, GP16, GP17),
+    (0, GP16, GP29),
+    (0, GP28, GP1),
+    (0, GP28, GP13),
+    (0, GP28, GP17),
+    (0, GP28, GP29),
     (1, GP4, GP5),
     (1, GP4, GP9),
+    (1, GP4, GP21),
+    (1, GP4, GP25),
     (1, GP8, GP5),
     (1, GP8, GP9),
+    (1, GP8, GP21),
+    (1, GP8, GP25),
+    (1, GP20, GP5),
+    (1, GP20, GP9),
+    (1, GP20, GP21),
+    (1, GP20, GP25),
+    (1, GP24, GP5),
+    (1, GP24, GP9),
+    (1, GP24, GP21),
+    (1, GP24, GP25),
 )
 
 # ordered as scl, sda

@@ -175,6 +175,11 @@ GPIO4_D6 = Pin((4, 30))
 GPIO4_D7 = Pin((4, 31))
 
 ADC_IN0 = 1
+ADC_IN1 = 2
+ADC_IN2 = 3
+ADC_IN3 = 4
+ADC_IN4 = 5
+ADC_IN5 = 6
 
 # I2C
 I2C2_SDA = GPIO2_A0
@@ -207,6 +212,7 @@ UART4_RX = GPIO1_A7
 # PWM
 PWM0 = GPIO4_C2
 PWM1 = GPIO4_C6
+PWM2 = GPIO1_C3
 
 # ordered as i2cId, SCL, SDA
 i2cPorts = (
@@ -224,8 +230,16 @@ spiPorts = (
 # SysFS pwm outputs, pwm channel and pin in first tuple
 pwmOuts = (
     ((0, 0), PWM0),
-    ((0, 0), PWM1),
+    ((1, 0), PWM1),
+    ((2, 0), PWM2),
 )
 
 # SysFS analog inputs, Ordered as analog analogInId, device, and channel
-analogIns = ((ADC_IN0, 0, 0),)
+analogIns = (
+    (ADC_IN0, 0, 0),
+    (ADC_IN1, 0, 1),
+    (ADC_IN2, 0, 2),
+    (ADC_IN3, 0, 3),
+    (ADC_IN4, 0, 4),
+    (ADC_IN5, 0, 5),
+)

@@ -61,7 +61,7 @@ if os.path.exists("/proc/device-tree/compatible"):
         board_reqs = ["Adafruit_BBIO"]
 
 setup(
-    name="quax-Blinka",
+    name="Adafruit-Blinka",
     version="8.31.0",
     description="CircuitPython APIs for non-CircuitPython versions of Python such as CPython on Linux and MicroPython.",
     long_description=long_description,

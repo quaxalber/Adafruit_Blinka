@@ -271,8 +271,8 @@ HID_PROTOCOL_MOUSE = 2
 
 
 Device.KEYBOARD = Device(
-    subclass=HID_SUBCLASS_BOOT_INTERFACE,
-    protocol=HID_PROTOCOL_KEYBOARD,
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
@@ -321,8 +321,8 @@ Device.KEYBOARD = Device(
 )
 
 Device.MOUSE = Device(
-    subclass=HID_SUBCLASS_BOOT_INTERFACE,
-    protocol=HID_PROTOCOL_MOUSE,
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off

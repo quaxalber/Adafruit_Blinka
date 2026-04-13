@@ -5,7 +5,6 @@
 `usb_hid` - support for usb hid devices via usb_gadget driver
 ===========================================================
 See `CircuitPython:usb_hid` in CircuitPython for more details.
-For now using report ids in the descriptor
 
 # regarding usb_gadget see https://www.kernel.org/doc/Documentation/usb/gadget_configfs.txt
 * Author(s): Björn Bösel
@@ -254,6 +253,14 @@ class Device:
         for device_path in list(self._device_fds.keys()):
             self._close_fd(device_path)
 
+    def report_length_for(self, report_index: int) -> int:
+        """Return the actual interrupt report length for configfs."""
+        report_id = self.report_ids[report_index]
+        report_length = self.in_report_lengths[report_index]
+        if report_id > 0:
+            return report_length + 1
+        return report_length
+
 
 HID_SUBCLASS_NONE = 0
 HID_SUBCLASS_BOOT_INTERFACE = 1
@@ -264,8 +271,8 @@ HID_PROTOCOL_MOUSE = 2
 
 
 Device.KEYBOARD = Device(
-    subclass=HID_SUBCLASS_NONE,
-    protocol=HID_PROTOCOL_NONE,
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_KEYBOARD,
     descriptor=bytes(
         (
             # fmt: off
@@ -315,8 +322,8 @@ Device.KEYBOARD = Device(
 )
 
 Device.MOUSE = Device(
-    subclass=HID_SUBCLASS_NONE,
-    protocol=HID_PROTOCOL_NONE,
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_MOUSE,
     descriptor=bytes(
         (
             # fmt: off
@@ -955,7 +962,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
                 "%s" % device.protocol, encoding="utf-8"
             )
             Path("%s/report_length" % function_root).write_text(
-                "%s" % device.in_report_lengths[report_index], encoding="utf-8"
+                "%s" % device.report_length_for(report_index), encoding="utf-8"
             )
             Path("%s/subclass" % function_root).write_text(
                 "%s" % device.subclass, encoding="utf-8"

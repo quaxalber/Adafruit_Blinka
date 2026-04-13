@@ -79,7 +79,6 @@ for module, config_symbol in MODULE_CONFIG.items():
 this = sys.modules[__name__]
 
 this.gadget_root = "/sys/kernel/config/usb_gadget/adafruit-blinka"
-this.boot_device = 0
 this.devices = []
 
 
@@ -745,7 +744,7 @@ def disable() -> None:
 atexit.register(disable)
 
 
-def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
+def enable(requested_devices: Sequence[Device]) -> None:
     """Specify which USB HID devices that will be available.
     Can be called in ``boot.py``, before USB is connected.
 
@@ -753,51 +752,20 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
       If `devices` is empty, HID is disabled. The order of the ``Devices``
       may matter to the host. For instance, for MacOS, put the mouse device
       before any Gamepad or Digitizer HID device or else it will not work.
-    :param int boot_device: If non-zero, inform the host that support for a
-      a boot HID device is available.
-      If ``boot_device=1``, a boot keyboard is available.
-      If ``boot_device=2``, a boot mouse is available. No other values are allowed.
-      See below.
 
     If you enable too many devices at once, you will run out of USB endpoints.
     The number of available endpoints varies by microcontroller.
     CircuitPython will go into safe mode after running ``boot.py`` to inform you if
     not enough endpoints are available.
 
-    **Boot Devices**
-
-    Boot devices implement a fixed, predefined report descriptor, defined in
-    https://www.usb.org/sites/default/files/hid1_12.pdf, Appendix B. A USB host
-    can request to use the boot device if the USB device says it is available.
-    Usually only a BIOS or other kind of limited-functionality
-    host needs boot keyboard support.
-
-    For example, to make a boot keyboard available, you can use this code::
-
-      usb_hid.enable((Device.KEYBOARD), boot_device=1)  # 1 for a keyboard
-
-    If the host requests the boot keyboard, the report descriptor provided by `Device.KEYBOARD`
-    will be ignored, and the predefined report descriptor will be used.
-    But if the host does not request the boot keyboard,
-    the descriptor provided by `Device.KEYBOARD` will be used.
-
-    The HID boot device must usually be the first or only device presented by CircuitPython.
-    The HID device will be USB interface number 0.
-    To make sure it is the first device, disable other USB devices, including CDC and MSC
-    (CIRCUITPY).
-    If you specify a non-zero ``boot_device``, and it is not the first device, CircuitPython
-    will enter safe mode to report this error.
+    Boot-capable devices should be requested explicitly via ``Device.BOOT_KEYBOARD``
+    or ``Device.BOOT_MOUSE``. Nonboot devices should be requested via ``Device.KEYBOARD``
+    and ``Device.MOUSE``.
     """
-    this.boot_device = boot_device
 
     if len(requested_devices) == 0:
         disable()
         return
-
-    if boot_device == 1:
-        requested_devices = [Device.BOOT_KEYBOARD]
-    if boot_device == 2:
-        requested_devices = [Device.BOOT_MOUSE]
 
     # """
     # 1. Creating the gadgets
@@ -837,10 +805,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     Path("%s/functions" % this.gadget_root).mkdir(parents=True, exist_ok=True)
     Path("%s/configs" % this.gadget_root).mkdir(parents=True, exist_ok=True)
     bcd_device = _env_int("B2U_USB_BCD_DEVICE", 1)
-    id_product = _env_int("B2U_USB_ID_PRODUCT", 0x0104)
-    id_vendor = _env_int("B2U_USB_ID_VENDOR", 0x1D6B)
     serial_number = _env_text("B2U_USB_SERIALNUMBER", "213374badcafe")
-    manufacturer = _env_text("B2U_USB_MANUFACTURER", "quaxalber")
     product = _env_text("B2U_USB_PRODUCT", "USB Combo Device")
 
     Path("%s/bcdDevice" % this.gadget_root).write_text(
@@ -862,17 +827,17 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
         "%s" % 0x08, encoding="utf-8"
     )
     Path("%s/idProduct" % this.gadget_root).write_text(
-        "%s" % id_product, encoding="utf-8"
+        "%s" % 0x0104, encoding="utf-8"
     )  # Multifunction Composite Gadget
     Path("%s/idVendor" % this.gadget_root).write_text(
-        "%s" % id_vendor, encoding="utf-8"
+        "%s" % 0x1D6B, encoding="utf-8"
     )  # Linux Foundation
     Path("%s/strings/0x409" % this.gadget_root).mkdir(parents=True, exist_ok=True)
     Path("%s/strings/0x409/serialnumber" % this.gadget_root).write_text(
         serial_number, encoding="utf-8"
     )
     Path("%s/strings/0x409/manufacturer" % this.gadget_root).write_text(
-        manufacturer, encoding="utf-8"
+        "quaxalber", encoding="utf-8"
     )
     Path("%s/strings/0x409/product" % this.gadget_root).write_text(
         product, encoding="utf-8"

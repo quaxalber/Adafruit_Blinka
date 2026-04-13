@@ -279,7 +279,6 @@ Device.KEYBOARD = Device(
             0x05, 0x01,  # usage page (generic desktop ctrls)
             0x09, 0x06,  # usage (keyboard)
             0xA1, 0x01,  # collection (application)
-            0x85, 0x01,  # Report ID (1)
             0x05, 0x07,  # usage page (kbrd/keypad)
             0x19, 0xE0,  # usage minimum (0xe0)
             0x29, 0xE7,  # usage maximum (0xe7)
@@ -315,7 +314,7 @@ Device.KEYBOARD = Device(
     ),
     usage_page=0x1,
     usage=0x6,
-    report_ids=[0x1],
+    report_ids=[0x0],
     in_report_lengths=[8],
     out_report_lengths=[1],
     name="keyboard gadget",
@@ -330,7 +329,6 @@ Device.MOUSE = Device(
             0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
             0x09, 0x02,  # Usage (Mouse)
             0xA1, 0x01,  # Collection (Application)
-            0x85, 0x02,  # Report ID (2)
             0x09, 0x01,  # Usage (Pointer)
             0xA1, 0x00,  # Collection (Physical)
             0x05, 0x09,  # Usage Page (Button)
@@ -366,7 +364,7 @@ Device.MOUSE = Device(
     ),
     usage_page=0x1,
     usage=0x02,
-    report_ids=[0x02],
+    report_ids=[0x00],
     in_report_lengths=[4],
     out_report_lengths=[0],
     name="mouse gadget",
@@ -381,7 +379,6 @@ Device.CONSUMER_CONTROL = Device(
             0x05, 0x0C,  # Usage Page (Consumer)
             0x09, 0x01,  # Usage (Consumer Control)
             0xA1, 0x01,  # Collection (Application)
-            0x85, 0x03,  # Report ID (3)
             0x75, 0x10,  # Report Size (16)
             0x95, 0x01,  # Report Count (1)
             0x15, 0x01,  # Logical Minimum (1)
@@ -396,7 +393,7 @@ Device.CONSUMER_CONTROL = Device(
     ),
     usage_page=0x0C,
     usage=0x01,
-    report_ids=[3],
+    report_ids=[0],
     in_report_lengths=[2],
     out_report_lengths=[0],
     name="consumer control gadget",

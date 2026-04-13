@@ -84,6 +84,20 @@ this.boot_device = 0
 this.devices = []
 
 
+def _env_text(name: str, default: str) -> str:
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return value
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return int(value, 0)
+
+
 class Device:
     """
     HID Device specification: see
@@ -818,8 +832,15 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     # """
     Path("%s/functions" % this.gadget_root).mkdir(parents=True, exist_ok=True)
     Path("%s/configs" % this.gadget_root).mkdir(parents=True, exist_ok=True)
+    bcd_device = _env_int("B2U_USB_BCD_DEVICE", 1)
+    id_product = _env_int("B2U_USB_ID_PRODUCT", 0x0104)
+    id_vendor = _env_int("B2U_USB_ID_VENDOR", 0x1D6B)
+    serial_number = _env_text("B2U_USB_SERIALNUMBER", "213374badcafe")
+    manufacturer = _env_text("B2U_USB_MANUFACTURER", "quaxalber")
+    product = _env_text("B2U_USB_PRODUCT", "USB Combo Device")
+
     Path("%s/bcdDevice" % this.gadget_root).write_text(
-        "%s" % 1, encoding="utf-8"
+        "%s" % bcd_device, encoding="utf-8"
     )  # Version 1.0.0
     Path("%s/bcdUSB" % this.gadget_root).write_text(
         "%s" % 0x0200, encoding="utf-8"
@@ -837,20 +858,20 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
         "%s" % 0x08, encoding="utf-8"
     )
     Path("%s/idProduct" % this.gadget_root).write_text(
-        "%s" % 0x0104, encoding="utf-8"
+        "%s" % id_product, encoding="utf-8"
     )  # Multifunction Composite Gadget
     Path("%s/idVendor" % this.gadget_root).write_text(
-        "%s" % 0x1D6B, encoding="utf-8"
+        "%s" % id_vendor, encoding="utf-8"
     )  # Linux Foundation
     Path("%s/strings/0x409" % this.gadget_root).mkdir(parents=True, exist_ok=True)
     Path("%s/strings/0x409/serialnumber" % this.gadget_root).write_text(
-        "213374badcafe", encoding="utf-8"
+        serial_number, encoding="utf-8"
     )
     Path("%s/strings/0x409/manufacturer" % this.gadget_root).write_text(
-        "quaxalber", encoding="utf-8"
+        manufacturer, encoding="utf-8"
     )
     Path("%s/strings/0x409/product" % this.gadget_root).write_text(
-        "USB Combo Device", encoding="utf-8"
+        product, encoding="utf-8"
     )
     # """
     # 2. Creating the configurations

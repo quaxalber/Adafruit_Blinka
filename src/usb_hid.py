@@ -103,6 +103,8 @@ class Device:
     def __init__(
         self,
         *,
+        subclass: int,
+        protocol: int,
         descriptor: bytes,
         usage_page: int,
         usage: int,
@@ -111,6 +113,8 @@ class Device:
         out_report_lengths: Sequence[int],
         name: str,
     ) -> None:
+        self.subclass = subclass
+        self.protocol = protocol
         self.out_report_lengths = out_report_lengths
         self.in_report_lengths = in_report_lengths
         self.report_ids = report_ids
@@ -240,7 +244,17 @@ class Device:
             self._close_fd(device_path)
 
 
+HID_SUBCLASS_NONE = 0
+HID_SUBCLASS_BOOT_INTERFACE = 1
+
+HID_PROTOCOL_NONE = 0
+HID_PROTOCOL_KEYBOARD = 1
+HID_PROTOCOL_MOUSE = 2
+
+
 Device.KEYBOARD = Device(
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_KEYBOARD,
     descriptor=bytes(
         (
             # fmt: off
@@ -290,6 +304,8 @@ Device.KEYBOARD = Device(
 )
 
 Device.MOUSE = Device(
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_MOUSE,
     descriptor=bytes(
         (
             # fmt: off
@@ -339,6 +355,8 @@ Device.MOUSE = Device(
 )
 
 Device.CONSUMER_CONTROL = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
@@ -367,6 +385,8 @@ Device.CONSUMER_CONTROL = Device(
 )
 
 Device.BOOT_KEYBOARD = Device(
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_KEYBOARD,
     descriptor=bytes(
         (
             # fmt: off
@@ -415,6 +435,8 @@ Device.BOOT_KEYBOARD = Device(
 )
 
 Device.BOOT_MOUSE = Device(
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_MOUSE,
     descriptor=bytes(
         (
             # fmt: off
@@ -466,6 +488,8 @@ GAMEPAD_REPORT_ID = 4
 RUMBLE_REPORT_ID = 5
 
 Device.GAMEPAD = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
@@ -543,6 +567,8 @@ Device.GAMEPAD = Device(
 )
 
 Device.DIGITIZER = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
@@ -900,12 +926,14 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
             except FileExistsError:
                 continue
             Path("%s/protocol" % function_root).write_text(
-                "%s" % report_id, encoding="utf-8"
+                "%s" % device.protocol, encoding="utf-8"
             )
             Path("%s/report_length" % function_root).write_text(
                 "%s" % device.in_report_lengths[report_index], encoding="utf-8"
             )
-            Path("%s/subclass" % function_root).write_text("%s" % 1, encoding="utf-8")
+            Path("%s/subclass" % function_root).write_text(
+                "%s" % device.subclass, encoding="utf-8"
+            )
             Path("%s/report_desc" % function_root).write_bytes(device.descriptor)
             # """
             # 4. Associating the functions with their configurations

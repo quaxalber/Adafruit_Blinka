@@ -124,6 +124,7 @@ class Device:
         self.name = name
         self.path = None
         self._last_received_report = None
+        self._report_id_to_function_instance: Dict[int, str] = {}
 
     def __str__(self):
         return f"{self.name} ({self.path})"
@@ -159,11 +160,12 @@ class Device:
         """
         translates the /dev/hidg device from the report id
         """
+        report_id = report_id or self.report_ids[0]
+        function_instance = self._report_id_to_function_instance.get(
+            report_id, f"usb{report_id}"
+        )
         device = (
-            Path(
-                "%s/functions/hid.usb%s/dev"
-                % (this.gadget_root, report_id or self.report_ids[0])
-            )
+            Path("%s/functions/hid.%s/dev" % (this.gadget_root, function_instance))
             .read_text(encoding="utf-8")
             .strip()
             .split(":")[1]
@@ -887,6 +889,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     #     $ echo 120 > configs/c.1/MaxPower
     #     """
 
+    function_instance_index = 0
     for device in requested_devices:
         config_root = "%s/configs/c.1" % this.gadget_root
         Path("%s/" % config_root).mkdir(parents=True, exist_ok=True)
@@ -897,6 +900,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
         Path("%s/MaxPower" % config_root).write_text("250", encoding="utf-8")
         Path("%s/bmAttributes" % config_root).write_text("%s" % 0x080, encoding="utf-8")
         this.devices.append(device)
+        device._report_id_to_function_instance = {}
         # """
         # 3. Creating the functions
         # -------------------------
@@ -920,11 +924,17 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
         # appropriate.
         # Please refer to Documentation/ABI/*/configfs-usb-gadget* for more information.  """
         for report_index, report_id in enumerate(device.report_ids):
-            function_root = "%s/functions/hid.usb%s" % (this.gadget_root, report_id)
+            function_instance = "usb%s" % function_instance_index
+            function_root = "%s/functions/hid.%s" % (
+                this.gadget_root,
+                function_instance,
+            )
             try:
                 Path("%s/" % function_root).mkdir(parents=True)
             except FileExistsError:
                 continue
+            device._report_id_to_function_instance[report_id] = function_instance
+            function_instance_index += 1
             Path("%s/protocol" % function_root).write_text(
                 "%s" % device.protocol, encoding="utf-8"
             )
@@ -951,7 +961,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
             #
             #     $ ln -s functions/ncm.usb0 configs/c.1  """
             try:
-                Path("%s/hid.usb%s" % (config_root, report_id)).symlink_to(
+                Path("%s/hid.%s" % (config_root, function_instance)).symlink_to(
                     function_root
                 )
             except FileNotFoundError:

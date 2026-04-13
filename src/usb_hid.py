@@ -178,12 +178,7 @@ class Device:
         you can supply `None` (the default) as the value of ``report_id``.
         Otherwise you must specify which report id to use when sending the report.
         """
-        report_id = report_id or self.report_ids[0]
-        device_path = self.get_device_path(report_id)
-        with open(device_path, "rb+") as fd:
-            if report_id > 0:
-                report = bytearray(report_id.to_bytes(1, "big")) + report
-            fd.write(report)
+        self.send_report_nonblocking(report, report_id)
 
     def _get_nonblocking_fd(self, device_path: str) -> int:
         """

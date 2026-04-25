@@ -5,13 +5,12 @@
 `usb_hid` - support for usb hid devices via usb_gadget driver
 ===========================================================
 See `CircuitPython:usb_hid` in CircuitPython for more details.
-For now using report ids in the descriptor
 
 # regarding usb_gadget see https://www.kernel.org/doc/Documentation/usb/gadget_configfs.txt
 * Author(s): Björn Bösel
 """
 
-from typing import Sequence, Dict
+from typing import Optional, Sequence, Dict
 from pathlib import Path
 import os
 import atexit
@@ -80,8 +79,21 @@ for module, config_symbol in MODULE_CONFIG.items():
 this = sys.modules[__name__]
 
 this.gadget_root = "/sys/kernel/config/usb_gadget/adafruit-blinka"
-this.boot_device = 0
 this.devices = []
+
+
+def _env_text(name: str, default: str) -> str:
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return value
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return int(value, 0)
 
 
 class Device:
@@ -90,19 +102,22 @@ class Device:
     https://github.com/adafruit/circuitpython/blob/main/shared-bindings/usb_hid/Device.c
     """
 
-    KEYBOARD = None
-    BOOT_KEYBOARD = None
-    MOUSE = None
-    BOOT_MOUSE = None
-    CONSUMER_CONTROL = None
-    GAMEPAD = None
-    DIGITIZER = None
+    KEYBOARD = None  # type: Optional[Device]
+    BOOT_KEYBOARD = None  # type: Optional[Device]
+    MOUSE = None  # type: Optional[Device]
+    MOUSE_EX = None  # type: Optional[Device]
+    BOOT_MOUSE = None  # type: Optional[Device]
+    CONSUMER_CONTROL = None  # type: Optional[Device]
+    GAMEPAD = None  # type: Optional[Device]
+    DIGITIZER = None  # type: Optional[Device]
 
     _device_fds: Dict[str, int] = {}  # Cache for file descriptors
 
     def __init__(
         self,
         *,
+        subclass: int,
+        protocol: int,
         descriptor: bytes,
         usage_page: int,
         usage: int,
@@ -111,6 +126,8 @@ class Device:
         out_report_lengths: Sequence[int],
         name: str,
     ) -> None:
+        self.subclass = subclass
+        self.protocol = protocol
         self.out_report_lengths = out_report_lengths
         self.in_report_lengths = in_report_lengths
         self.report_ids = report_ids
@@ -118,8 +135,9 @@ class Device:
         self.usage_page = usage_page
         self.descriptor = descriptor
         self.name = name
-        self.path = None
-        self._last_received_report = None
+        self.path = ""
+        self._last_received_report = bytes()
+        self._report_id_to_function_instance: Dict[int, str] = {}
 
     def __str__(self):
         return f"{self.name} ({self.path})"
@@ -155,11 +173,12 @@ class Device:
         """
         translates the /dev/hidg device from the report id
         """
+        report_id = report_id or self.report_ids[0]
+        function_instance = self._report_id_to_function_instance.get(
+            report_id, f"usb{report_id}"
+        )
         device = (
-            Path(
-                "%s/functions/hid.usb%s/dev"
-                % (this.gadget_root, report_id or self.report_ids[0])
-            )
+            Path("%s/functions/hid.%s/dev" % (this.gadget_root, function_instance))
             .read_text(encoding="utf-8")
             .strip()
             .split(":")[1]
@@ -167,17 +186,12 @@ class Device:
         device_path = "/dev/hidg%s" % device
         return device_path
 
-    def send_report(self, report: bytearray, report_id: int = None):
+    def send_report(self, report: bytearray, report_id: Optional[int] = None):
         """Send an HID report. If the device descriptor specifies zero or one report id's,
         you can supply `None` (the default) as the value of ``report_id``.
         Otherwise you must specify which report id to use when sending the report.
         """
-        report_id = report_id or self.report_ids[0]
-        device_path = self.get_device_path(report_id)
-        with open(device_path, "rb+") as fd:
-            if report_id > 0:
-                report = bytearray(report_id.to_bytes(1, "big")) + report
-            fd.write(report)
+        self.send_report_nonblocking(report, report_id)
 
     def _get_nonblocking_fd(self, device_path: str) -> int:
         """
@@ -207,7 +221,9 @@ class Device:
                 pass  # Ignore errors during close
             del self._device_fds[device_path]
 
-    def send_report_nonblocking(self, report: bytearray, report_id: int = None) -> None:
+    def send_report_nonblocking(
+        self, report: bytearray, report_id: Optional[int] = None
+    ) -> None:
         """
         Send an HID report using non-blocking I/O.
 
@@ -239,15 +255,32 @@ class Device:
         for device_path in list(self._device_fds.keys()):
             self._close_fd(device_path)
 
+    def report_length_for(self, report_index: int) -> int:
+        """Return the actual interrupt report length for configfs."""
+        report_id = self.report_ids[report_index]
+        report_length = self.in_report_lengths[report_index]
+        if report_id > 0:
+            return report_length + 1
+        return report_length
+
+
+HID_SUBCLASS_NONE = 0
+HID_SUBCLASS_BOOT_INTERFACE = 1
+
+HID_PROTOCOL_NONE = 0
+HID_PROTOCOL_KEYBOARD = 1
+HID_PROTOCOL_MOUSE = 2
+
 
 Device.KEYBOARD = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
             0x05, 0x01,  # usage page (generic desktop ctrls)
             0x09, 0x06,  # usage (keyboard)
             0xA1, 0x01,  # collection (application)
-            0x85, 0x01,  # Report ID (1)
             0x05, 0x07,  # usage page (kbrd/keypad)
             0x19, 0xE0,  # usage minimum (0xe0)
             0x29, 0xE7,  # usage maximum (0xe7)
@@ -283,20 +316,21 @@ Device.KEYBOARD = Device(
     ),
     usage_page=0x1,
     usage=0x6,
-    report_ids=[0x1],
+    report_ids=[0x0],
     in_report_lengths=[8],
     out_report_lengths=[1],
     name="keyboard gadget",
 )
 
 Device.MOUSE = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
             0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
             0x09, 0x02,  # Usage (Mouse)
             0xA1, 0x01,  # Collection (Application)
-            0x85, 0x02,  # Report ID (2)
             0x09, 0x01,  # Usage (Pointer)
             0xA1, 0x00,  # Collection (Physical)
             0x05, 0x09,  # Usage Page (Button)
@@ -332,20 +366,70 @@ Device.MOUSE = Device(
     ),
     usage_page=0x1,
     usage=0x02,
-    report_ids=[0x02],
+    report_ids=[0x00],
     in_report_lengths=[4],
     out_report_lengths=[0],
     name="mouse gadget",
 )
 
+Device.MOUSE_EX = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
+    descriptor=bytes(
+        (
+            # fmt: off
+            0x05, 0x01,        # Usage Page (Generic Desktop Ctrls)
+            0x09, 0x02,        # Usage (Mouse)
+            0xA1, 0x01,        # Collection (Application)
+            0x09, 0x01,        # Usage (Pointer)
+            0xA1, 0x00,        # Collection (Physical)
+            0x05, 0x09,        # Usage Page (Button)
+            0x19, 0x01,        # Usage Minimum (0x01)
+            0x29, 0x08,        # Usage Maximum (0x08)
+            0x15, 0x00,        # Logical Minimum (0)
+            0x25, 0x01,        # Logical Maximum (1)
+            0x75, 0x01,        # Report Size (1)
+            0x95, 0x08,        # Report Count (8)
+            0x81, 0x02,        # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+            0x05, 0x01,        # Usage Page (Generic Desktop Ctrls)
+            0x09, 0x30,        # Usage (X)
+            0x09, 0x31,        # Usage (Y)
+            0x16, 0x01, 0x80,  # Logical Minimum (-32767)
+            0x26, 0xFF, 0x7F,  # Logical Maximum (32767)
+            0x75, 0x10,        # Report Size (16)
+            0x95, 0x02,        # Report Count (2)
+            0x81, 0x06,        # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+            0x09, 0x38,        # Usage (Wheel)
+            0x15, 0x81,        # Logical Minimum (-127)
+            0x25, 0x7F,        # Logical Maximum (127)
+            0x75, 0x08,        # Report Size (8)
+            0x95, 0x01,        # Report Count (1)
+            0x81, 0x06,        # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+            0x05, 0x0C,        # Usage Page (Consumer)
+            0x0A, 0x38, 0x02,  # Usage (Application Controls - Pan)
+            0x81, 0x06,        # Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+            0xC0,              # End Collection (Physical)
+            0xC0,              # End Collection (Application)
+            # fmt: on
+        )
+    ),
+    usage_page=0x1,
+    usage=0x02,
+    report_ids=[0x00],
+    in_report_lengths=[7],
+    out_report_lengths=[0],
+    name="extended mouse gadget",
+)
+
 Device.CONSUMER_CONTROL = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
             0x05, 0x0C,  # Usage Page (Consumer)
             0x09, 0x01,  # Usage (Consumer Control)
             0xA1, 0x01,  # Collection (Application)
-            0x85, 0x03,  # Report ID (3)
             0x75, 0x10,  # Report Size (16)
             0x95, 0x01,  # Report Count (1)
             0x15, 0x01,  # Logical Minimum (1)
@@ -360,13 +444,15 @@ Device.CONSUMER_CONTROL = Device(
     ),
     usage_page=0x0C,
     usage=0x01,
-    report_ids=[3],
+    report_ids=[0],
     in_report_lengths=[2],
     out_report_lengths=[0],
     name="consumer control gadget",
 )
 
 Device.BOOT_KEYBOARD = Device(
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_KEYBOARD,
     descriptor=bytes(
         (
             # fmt: off
@@ -415,6 +501,8 @@ Device.BOOT_KEYBOARD = Device(
 )
 
 Device.BOOT_MOUSE = Device(
+    subclass=HID_SUBCLASS_BOOT_INTERFACE,
+    protocol=HID_PROTOCOL_MOUSE,
     descriptor=bytes(
         (
             # fmt: off
@@ -425,14 +513,14 @@ Device.BOOT_MOUSE = Device(
             0xA1, 0x00,  # Collection (Physical)
             0x05, 0x09,  # Usage Page (Button)
             0x19, 0x01,  # Usage Minimum (0x01)
-            0x29, 0x05,  # Usage Maximum (0x05)
+            0x29, 0x03,  # Usage Maximum (0x03)
             0x15, 0x00,  # Logical Minimum (0)
             0x25, 0x01,  # Logical Maximum (1)
-            0x95, 0x05,  # Report Count (5)
+            0x95, 0x03,  # Report Count (3)
             0x75, 0x01,  # Report Size (1)
             0x81, 0x02,  # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
             0x95, 0x01,  # Report Count (1)
-            0x75, 0x03,  # Report Size (3)
+            0x75, 0x05,  # Report Size (5)
             0x81, 0x01,  # Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
             0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
             0x09, 0x30,  # Usage (X)
@@ -466,6 +554,8 @@ GAMEPAD_REPORT_ID = 4
 RUMBLE_REPORT_ID = 5
 
 Device.GAMEPAD = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
@@ -543,6 +633,8 @@ Device.GAMEPAD = Device(
 )
 
 Device.DIGITIZER = Device(
+    subclass=HID_SUBCLASS_NONE,
+    protocol=HID_PROTOCOL_NONE,
     descriptor=bytes(
         (
             # fmt: off
@@ -704,7 +796,7 @@ def disable() -> None:
 atexit.register(disable)
 
 
-def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
+def enable(requested_devices: Sequence[Device]) -> None:
     """Specify which USB HID devices that will be available.
     Can be called in ``boot.py``, before USB is connected.
 
@@ -712,51 +804,20 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
       If `devices` is empty, HID is disabled. The order of the ``Devices``
       may matter to the host. For instance, for MacOS, put the mouse device
       before any Gamepad or Digitizer HID device or else it will not work.
-    :param int boot_device: If non-zero, inform the host that support for a
-      a boot HID device is available.
-      If ``boot_device=1``, a boot keyboard is available.
-      If ``boot_device=2``, a boot mouse is available. No other values are allowed.
-      See below.
 
     If you enable too many devices at once, you will run out of USB endpoints.
     The number of available endpoints varies by microcontroller.
     CircuitPython will go into safe mode after running ``boot.py`` to inform you if
     not enough endpoints are available.
 
-    **Boot Devices**
-
-    Boot devices implement a fixed, predefined report descriptor, defined in
-    https://www.usb.org/sites/default/files/hid1_12.pdf, Appendix B. A USB host
-    can request to use the boot device if the USB device says it is available.
-    Usually only a BIOS or other kind of limited-functionality
-    host needs boot keyboard support.
-
-    For example, to make a boot keyboard available, you can use this code::
-
-      usb_hid.enable((Device.KEYBOARD), boot_device=1)  # 1 for a keyboard
-
-    If the host requests the boot keyboard, the report descriptor provided by `Device.KEYBOARD`
-    will be ignored, and the predefined report descriptor will be used.
-    But if the host does not request the boot keyboard,
-    the descriptor provided by `Device.KEYBOARD` will be used.
-
-    The HID boot device must usually be the first or only device presented by CircuitPython.
-    The HID device will be USB interface number 0.
-    To make sure it is the first device, disable other USB devices, including CDC and MSC
-    (CIRCUITPY).
-    If you specify a non-zero ``boot_device``, and it is not the first device, CircuitPython
-    will enter safe mode to report this error.
+    Boot-capable devices should be requested explicitly via ``Device.BOOT_KEYBOARD``
+    or ``Device.BOOT_MOUSE``. Nonboot devices should be requested via ``Device.KEYBOARD``
+    and ``Device.MOUSE``.
     """
-    this.boot_device = boot_device
 
     if len(requested_devices) == 0:
         disable()
         return
-
-    if boot_device == 1:
-        requested_devices = [Device.BOOT_KEYBOARD]
-    if boot_device == 2:
-        requested_devices = [Device.BOOT_MOUSE]
 
     # """
     # 1. Creating the gadgets
@@ -795,8 +856,12 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     # """
     Path("%s/functions" % this.gadget_root).mkdir(parents=True, exist_ok=True)
     Path("%s/configs" % this.gadget_root).mkdir(parents=True, exist_ok=True)
+    bcd_device = _env_int("B2U_USB_BCD_DEVICE", 1)
+    serial_number = _env_text("B2U_USB_SERIALNUMBER", "213374badcafe")
+    product = _env_text("B2U_USB_PRODUCT", "USB Combo Device")
+
     Path("%s/bcdDevice" % this.gadget_root).write_text(
-        "%s" % 1, encoding="utf-8"
+        "%s" % bcd_device, encoding="utf-8"
     )  # Version 1.0.0
     Path("%s/bcdUSB" % this.gadget_root).write_text(
         "%s" % 0x0200, encoding="utf-8"
@@ -821,13 +886,13 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     )  # Linux Foundation
     Path("%s/strings/0x409" % this.gadget_root).mkdir(parents=True, exist_ok=True)
     Path("%s/strings/0x409/serialnumber" % this.gadget_root).write_text(
-        "213374badcafe", encoding="utf-8"
+        serial_number, encoding="utf-8"
     )
     Path("%s/strings/0x409/manufacturer" % this.gadget_root).write_text(
         "quaxalber", encoding="utf-8"
     )
     Path("%s/strings/0x409/product" % this.gadget_root).write_text(
-        "USB Combo Device", encoding="utf-8"
+        product, encoding="utf-8"
     )
     # """
     # 2. Creating the configurations
@@ -861,6 +926,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
     #     $ echo 120 > configs/c.1/MaxPower
     #     """
 
+    function_instance_index = 0
     for device in requested_devices:
         config_root = "%s/configs/c.1" % this.gadget_root
         Path("%s/" % config_root).mkdir(parents=True, exist_ok=True)
@@ -871,6 +937,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
         Path("%s/MaxPower" % config_root).write_text("250", encoding="utf-8")
         Path("%s/bmAttributes" % config_root).write_text("%s" % 0x080, encoding="utf-8")
         this.devices.append(device)
+        device._report_id_to_function_instance = {}
         # """
         # 3. Creating the functions
         # -------------------------
@@ -894,18 +961,26 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
         # appropriate.
         # Please refer to Documentation/ABI/*/configfs-usb-gadget* for more information.  """
         for report_index, report_id in enumerate(device.report_ids):
-            function_root = "%s/functions/hid.usb%s" % (this.gadget_root, report_id)
+            function_instance = "usb%s" % function_instance_index
+            function_root = "%s/functions/hid.%s" % (
+                this.gadget_root,
+                function_instance,
+            )
             try:
                 Path("%s/" % function_root).mkdir(parents=True)
             except FileExistsError:
                 continue
+            device._report_id_to_function_instance[report_id] = function_instance
+            function_instance_index += 1
             Path("%s/protocol" % function_root).write_text(
-                "%s" % report_id, encoding="utf-8"
+                "%s" % device.protocol, encoding="utf-8"
             )
             Path("%s/report_length" % function_root).write_text(
-                "%s" % device.in_report_lengths[report_index], encoding="utf-8"
+                "%s" % (device.report_length_for(report_index) + 1), encoding="utf-8"
             )
-            Path("%s/subclass" % function_root).write_text("%s" % 1, encoding="utf-8")
+            Path("%s/subclass" % function_root).write_text(
+                "%s" % device.subclass, encoding="utf-8"
+            )
             Path("%s/report_desc" % function_root).write_bytes(device.descriptor)
             # """
             # 4. Associating the functions with their configurations
@@ -923,7 +998,7 @@ def enable(requested_devices: Sequence[Device], boot_device: int = 0) -> None:
             #
             #     $ ln -s functions/ncm.usb0 configs/c.1  """
             try:
-                Path("%s/hid.usb%s" % (config_root, report_id)).symlink_to(
+                Path("%s/hid.%s" % (config_root, function_instance)).symlink_to(
                     function_root
                 )
             except FileNotFoundError:
